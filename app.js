@@ -36,17 +36,23 @@ function formatIEPDate() {
   return new Date(val + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-/* ---- Academic reading level sentences ---- */
-function getReadingLevelSentences() {
-  const instrLevel = document.getElementById('ac-instr-level');
-  const indepLevel = document.getElementById('ac-indep-level');
-  const instrWPM   = document.getElementById('ac-instr-wpm');
-  const indepWPM   = document.getElementById('ac-indep-wpm');
+/* ---- Academic data sentences (reading levels, fluency, CBMs) ---- */
+function getAcademicDataSentences() {
+  const instrLevel  = document.getElementById('ac-instr-level');
+  const indepLevel  = document.getElementById('ac-indep-level');
+  const instrWPM    = document.getElementById('ac-instr-wpm');
+  const indepWPM    = document.getElementById('ac-indep-wpm');
+  const mathExcel   = document.getElementById('ac-math-excel');
+  const mapMath     = document.getElementById('ac-map-math');
+  const mapReading  = document.getElementById('ac-map-reading');
   const out = [];
-  if (instrLevel?.value) out.push(interpolate(`{name} reads instructionally at ${instrLevel.value}.`));
-  if (indepLevel?.value) out.push(interpolate(`{name} reads independently at ${indepLevel.value}.`));
-  if (instrWPM?.value)   out.push(interpolate(`{name}'s oral reading fluency at the instructional level is ${instrWPM.value}.`));
-  if (indepWPM?.value)   out.push(interpolate(`{name}'s oral reading fluency at the independent level is ${indepWPM.value}.`));
+  if (instrLevel?.value)  out.push(interpolate(`{name} reads instructionally at ${instrLevel.value}.`));
+  if (indepLevel?.value)  out.push(interpolate(`{name} reads independently at ${indepLevel.value}.`));
+  if (instrWPM?.value)    out.push(interpolate(`{name}'s oral reading fluency at the instructional level is ${instrWPM.value}.`));
+  if (indepWPM?.value)    out.push(interpolate(`{name}'s oral reading fluency at the independent level is ${indepWPM.value}.`));
+  if (mathExcel?.value)   out.push(interpolate(`On the Math Excel mathematics curriculum-based measure (CBM), {name} performed at ${mathExcel.value}.`));
+  if (mapMath?.value)     out.push(interpolate(`{name} earned a RIT score of ${mapMath.value} on the MAP Growth Mathematics assessment.`));
+  if (mapReading?.value)  out.push(interpolate(`{name} earned a RIT score of ${mapReading.value} on the MAP Growth Reading assessment.`));
   return out;
 }
 
@@ -165,7 +171,7 @@ function updateSectionOutput(sectionKey) {
   const extraText = extraTextarea ? extraTextarea.value.trim() : '';
 
   // Reading level sentences (academic section only)
-  const readingLines = sectionKey === 'academic' ? getReadingLevelSentences() : [];
+  const readingLines = sectionKey === 'academic' ? getAcademicDataSentences() : [];
 
   const hasContent = sentences.length > 0 || extraText || readingLines.length > 0 || isNeed;
 
@@ -312,6 +318,10 @@ function updateSummary() {
 
 /* ---- Generate full document ---- */
 function generateDocument() {
+  // Sync state before generating so pronouns and name are always current
+  state.studentName = document.getElementById('studentName').value.trim();
+  state.pronouns    = document.getElementById('pronouns').value;
+
   const preview = document.getElementById('document-preview');
 
   const sName    = document.getElementById('studentName').value.trim() || 'Student';
@@ -347,7 +357,7 @@ function generateDocument() {
     const extraEl    = document.getElementById(`${key}-data`);
     const extraText  = extraEl ? extraEl.value.trim() : '';
 
-    const readingLines = key === 'academic' ? getReadingLevelSentences() : [];
+    const readingLines = key === 'academic' ? getAcademicDataSentences() : [];
 
     const sentences = section.questions
       .map(q => {
@@ -471,11 +481,16 @@ function init() {
   // Extra textareas
   document.getElementById('sections-container').addEventListener('input', handleExtraTextChange);
 
-  // Academic reading level dropdowns
-  ['ac-instr-level', 'ac-indep-level', 'ac-instr-wpm', 'ac-indep-wpm'].forEach(id => {
+  // Academic dropdowns (reading levels, fluency, CBMs)
+  ['ac-instr-level', 'ac-indep-level', 'ac-instr-wpm', 'ac-indep-wpm',
+   'ac-math-excel', 'ac-map-math', 'ac-map-reading'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', () => updateSectionOutput('academic'));
   });
+
+  // Ensure pronouns changes are captured via both input and change events
+  const pronounsEl = document.getElementById('pronouns');
+  if (pronounsEl) pronounsEl.addEventListener('change', handleStudentInfoChange);
 
   // Document actions
   document.getElementById('generate-btn').addEventListener('click', generateDocument);
