@@ -238,14 +238,28 @@ function updateSummary() {
   if (!summaryEl) return;
 
   const chips = Object.entries(SECTIONS).map(([key, s]) => {
+    const hasAnyAnswer = s.questions.some(q => state.answers[q.id]);
     const hasNoAnswers = s.questions.some(q => state.answers[q.id] === 'no');
     const isNeed       = state.needs[key] || false;
+    const reviewed     = hasAnyAnswer || isNeed;
     const flagged      = hasNoAnswers || isNeed;
 
+    let chipClass, chipLabel;
+    if (!reviewed) {
+      chipClass = 'not-reviewed';
+      chipLabel = `${s.label} <span style="font-weight:400">— Not reviewed</span>`;
+    } else if (flagged) {
+      chipClass = 'is-need';
+      chipLabel = `${s.label} — <strong>Area of Need</strong>`;
+    } else {
+      chipClass = 'no-need';
+      chipLabel = s.label;
+    }
+
     return `
-      <div class="need-chip ${flagged ? 'is-need' : 'no-need'}">
+      <div class="need-chip ${chipClass}">
         <span class="dot"></span>
-        ${s.label}${flagged ? ' — <strong>Area of Need</strong>' : ''}
+        ${chipLabel}
       </div>
     `;
   }).join('');
@@ -296,7 +310,7 @@ function generateDocument() {
       })
       .filter(Boolean);
 
-    // Show all sections in the document, even untouched ones
+    if (sentences.length === 0 && !extraText && !flagged) return; // skip empty untouched sections
 
     html += `
       <div class="doc-section">
