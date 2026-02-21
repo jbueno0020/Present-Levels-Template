@@ -296,7 +296,7 @@ function generateDocument() {
       })
       .filter(Boolean);
 
-    if (sentences.length === 0 && !extraText && !flagged) return; // skip empty untouched sections
+    // Show all sections in the document, even untouched ones
 
     html += `
       <div class="doc-section">
@@ -309,6 +309,9 @@ function generateDocument() {
   });
 
   preview.innerHTML = html;
+
+  // Scroll the document preview into view so the user can see the result
+  preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* ---- Print ---- */
