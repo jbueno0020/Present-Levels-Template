@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Present Levels of Performance Generator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <div class="header-inner">
+        <h1>Present Levels of Performance</h1>
+        <p class="subtitle">IEP Present Levels Generator</p>
+      </div>
+    </header>
+
+    <!-- Student Info -->
+    <section class="card" id="student-info">
+      <h2>Student Information</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>Student Name</label>
+          <input type="text" id="studentName" placeholder="Full name" />
+        </div>
+        <div class="field">
+          <label>Date of Birth</label>
+          <input type="date" id="dob" />
+        </div>
+        <div class="field">
+          <label>Grade</label>
+          <input type="text" id="grade" placeholder="e.g. 3rd" />
+        </div>
+        <div class="field">
+          <label>School</label>
+          <input type="text" id="school" placeholder="School name" />
+        </div>
+        <div class="field">
+          <label>Teacher / Case Manager</label>
+          <input type="text" id="teacher" placeholder="Name" />
+        </div>
+        <div class="field">
+          <label>IEP Date</label>
+          <input type="date" id="iepDate" />
+        </div>
+        <div class="field">
+          <label>Pronouns</label>
+          <select id="pronouns">
+            <option value="he">He / Him / His</option>
+            <option value="she">She / Her / Her</option>
+            <option value="they">They / Them / Their</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Disability Category</label>
+          <input type="text" id="disability" placeholder="e.g. Autism Spectrum Disorder" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs" id="section-tabs">
+      <button class="tab active" data-section="academic">Academic</button>
+      <button class="tab" data-section="communication">Communication</button>
+      <button class="tab" data-section="motor">Motor</button>
+      <button class="tab" data-section="socialemotional">Social/Emotional</button>
+      <button class="tab" data-section="vocational">Vocational</button>
+      <button class="tab" data-section="adaptive">Adaptive/Daily Living</button>
+      <button class="tab" data-section="health">Health</button>
+    </nav>
+
+    <!-- Sections Container -->
+    <div id="sections-container">
+
+      <!-- ============================================================
+           SECTION: Academic / Preacademic / Functional Skills
+           ============================================================ -->
+      <section class="section-panel active" data-section="academic">
+        <div class="card">
+          <div class="section-header">
+            <h2>Preacademic / Academic / Functional Skills</h2>
+            <label class="area-of-need-toggle">
+              <span>Mark as Area of Need</span>
+              <input type="checkbox" class="need-checkbox" data-section="academic" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="additional-info">
+            <label>Current Grade-Level Performance / Assessment Data</label>
+            <textarea id="academic-data" rows="3" placeholder="e.g. STAR Reading: 2.4 GE, STAR Math: 1.8 GE, classroom observation notes…"></textarea>
+          </div>
+
+          <div class="questions-grid" id="academic-questions"></div>
+
+          <div class="generated-text-box">
+            <h3>Generated Present Level Text</h3>
+            <div class="generated-text" id="academic-output"></div>
+          </div>
+
+          <div class="goals-box hidden" id="academic-goals-box">
+            <h3>Suggested IEP Goals</h3>
+            <ul id="academic-goals"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECTION: Communication Development
+           ============================================================ -->
+      <section class="section-panel" data-section="communication">
+        <div class="card">
+          <div class="section-header">
+            <h2>Communication Development</h2>
+            <label class="area-of-need-toggle">
+              <span>Mark as Area of Need</span>
+              <input type="checkbox" class="need-checkbox" data-section="communication" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="additional-info">
+            <label>Communication Assessment / Notes</label>
+            <textarea id="communication-data" rows="3" placeholder="e.g. Speech-Language evaluation findings, AAC device in use…"></textarea>
+          </div>
+
+          <div class="questions-grid" id="communication-questions"></div>
+
+          <div class="generated-text-box">
+            <h3>Generated Present Level Text</h3>
+            <div class="generated-text" id="communication-output"></div>
+          </div>
+
+          <div class="goals-box hidden" id="communication-goals-box">
+            <h3>Suggested IEP Goals</h3>
+            <ul id="communication-goals"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECTION: Gross / Fine Motor Development
+           ============================================================ -->
+      <section class="section-panel" data-section="motor">
+        <div class="card">
+          <div class="section-header">
+            <h2>Gross / Fine Motor Development</h2>
+            <label class="area-of-need-toggle">
+              <span>Mark as Area of Need</span>
+              <input type="checkbox" class="need-checkbox" data-section="motor" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="additional-info">
+            <label>Motor Assessment / Notes</label>
+            <textarea id="motor-data" rows="3" placeholder="e.g. OT/PT evaluation results, assistive devices used…"></textarea>
+          </div>
+
+          <div class="questions-grid" id="motor-questions"></div>
+
+          <div class="generated-text-box">
+            <h3>Generated Present Level Text</h3>
+            <div class="generated-text" id="motor-output"></div>
+          </div>
+
+          <div class="goals-box hidden" id="motor-goals-box">
+            <h3>Suggested IEP Goals</h3>
+            <ul id="motor-goals"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECTION: Social Emotional / Behavioral
+           ============================================================ -->
+      <section class="section-panel" data-section="socialemotional">
+        <div class="card">
+          <div class="section-header">
+            <h2>Social Emotional / Behavioral</h2>
+            <label class="area-of-need-toggle">
+              <span>Mark as Area of Need</span>
+              <input type="checkbox" class="need-checkbox" data-section="socialemotional" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="additional-info">
+            <label>Behavioral Assessment / Notes</label>
+            <textarea id="socialemotional-data" rows="3" placeholder="e.g. FBA results, behavior intervention plan notes, rating scales…"></textarea>
+          </div>
+
+          <div class="questions-grid" id="socialemotional-questions"></div>
+
+          <div class="generated-text-box">
+            <h3>Generated Present Level Text</h3>
+            <div class="generated-text" id="socialemotional-output"></div>
+          </div>
+
+          <div class="goals-box hidden" id="socialemotional-goals-box">
+            <h3>Suggested IEP Goals</h3>
+            <ul id="socialemotional-goals"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECTION: Vocational
+           ============================================================ -->
+      <section class="section-panel" data-section="vocational">
+        <div class="card">
+          <div class="section-header">
+            <h2>Vocational</h2>
+            <label class="area-of-need-toggle">
+              <span>Mark as Area of Need</span>
+              <input type="checkbox" class="need-checkbox" data-section="vocational" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="additional-info">
+            <label>Vocational Assessment / Notes</label>
+            <textarea id="vocational-data" rows="3" placeholder="e.g. transition assessment results, work-based learning experience…"></textarea>
+          </div>
+
+          <div class="questions-grid" id="vocational-questions"></div>
+
+          <div class="generated-text-box">
+            <h3>Generated Present Level Text</h3>
+            <div class="generated-text" id="vocational-output"></div>
+          </div>
+
+          <div class="goals-box hidden" id="vocational-goals-box">
+            <h3>Suggested IEP Goals</h3>
+            <ul id="vocational-goals"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECTION: Adaptive / Daily Living Skills
+           ============================================================ -->
+      <section class="section-panel" data-section="adaptive">
+        <div class="card">
+          <div class="section-header">
+            <h2>Adaptive / Daily Living Skills</h2>
+            <label class="area-of-need-toggle">
+              <span>Mark as Area of Need</span>
+              <input type="checkbox" class="need-checkbox" data-section="adaptive" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="additional-info">
+            <label>Adaptive Assessment / Notes</label>
+            <textarea id="adaptive-data" rows="3" placeholder="e.g. Vineland-3 results, personal care independence level…"></textarea>
+          </div>
+
+          <div class="questions-grid" id="adaptive-questions"></div>
+
+          <div class="generated-text-box">
+            <h3>Generated Present Level Text</h3>
+            <div class="generated-text" id="adaptive-output"></div>
+          </div>
+
+          <div class="goals-box hidden" id="adaptive-goals-box">
+            <h3>Suggested IEP Goals</h3>
+            <ul id="adaptive-goals"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECTION: Health
+           ============================================================ -->
+      <section class="section-panel" data-section="health">
+        <div class="card">
+          <div class="section-header">
+            <h2>Health</h2>
+            <label class="area-of-need-toggle">
+              <span>Mark as Area of Need</span>
+              <input type="checkbox" class="need-checkbox" data-section="health" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="additional-info">
+            <label>Health / Medical Notes</label>
+            <textarea id="health-data" rows="3" placeholder="e.g. diagnoses, medications, hearing/vision screening results…"></textarea>
+          </div>
+
+          <div class="questions-grid" id="health-questions"></div>
+
+          <div class="generated-text-box">
+            <h3>Generated Present Level Text</h3>
+            <div class="generated-text" id="health-output"></div>
+          </div>
+
+          <div class="goals-box hidden" id="health-goals-box">
+            <h3>Suggested IEP Goals</h3>
+            <ul id="health-goals"></ul>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- end sections-container -->
+
+    <!-- Areas of Need Summary -->
+    <section class="card" id="summary-card">
+      <h2>Areas of Need Summary</h2>
+      <div id="needs-summary">
+        <p class="placeholder-text">Complete the sections above to see a summary of areas of need.</p>
+      </div>
+    </section>
+
+    <!-- Full Document Preview -->
+    <section class="card" id="preview-card">
+      <div class="preview-header">
+        <h2>Full Present Levels Document</h2>
+        <div class="preview-actions">
+          <button id="generate-btn" class="btn-primary">Generate Document</button>
+          <button id="print-btn" class="btn-secondary">Print / Save as PDF</button>
+          <button id="copy-btn" class="btn-secondary">Copy to Clipboard</button>
+        </div>
+      </div>
+      <div id="document-preview" class="document-preview">
+        <p class="placeholder-text">Click "Generate Document" to preview the full present levels document.</p>
+      </div>
+    </section>
+
+  </div><!-- end app -->
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
