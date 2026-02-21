@@ -29,6 +29,27 @@ function interpolate(template) {
     .replace(/\{His\}/g,   p.His);
 }
 
+/* ---- IEP date formatter ---- */
+function formatIEPDate() {
+  const val = document.getElementById('iepDate').value;
+  if (!val) return '';
+  return new Date(val + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+/* ---- Academic reading level sentences ---- */
+function getReadingLevelSentences() {
+  const instrLevel = document.getElementById('ac-instr-level');
+  const indepLevel = document.getElementById('ac-indep-level');
+  const instrWPM   = document.getElementById('ac-instr-wpm');
+  const indepWPM   = document.getElementById('ac-indep-wpm');
+  const out = [];
+  if (instrLevel?.value) out.push(interpolate(`{name} reads instructionally at ${instrLevel.value}.`));
+  if (indepLevel?.value) out.push(interpolate(`{name} reads independently at ${indepLevel.value}.`));
+  if (instrWPM?.value)   out.push(interpolate(`{name}'s oral reading fluency at the instructional level is ${instrWPM.value}.`));
+  if (indepWPM?.value)   out.push(interpolate(`{name}'s oral reading fluency at the independent level is ${indepWPM.value}.`));
+  return out;
+}
+
 /* ---- Build question cards for every section ---- */
 function buildQuestions() {
   Object.entries(SECTIONS).forEach(([sectionKey, sectionData]) => {
@@ -126,8 +147,9 @@ function updateSectionOutput(sectionKey) {
   const outputEl = document.getElementById(`${sectionKey}-output`);
   if (!outputEl) return;
 
-  const name = state.studentName || 'The student';
-  const isNeed = state.needs[sectionKey] || false;
+  const isNeed       = state.needs[sectionKey] || false;
+  const hasNoAnswers = section.questions.some(q => state.answers[q.id] === 'no');
+  const flagged      = hasNoAnswers || isNeed;
 
   // Collect answered sentences
   const sentences = section.questions
@@ -142,16 +164,37 @@ function updateSectionOutput(sectionKey) {
   const extraTextarea = document.getElementById(`${sectionKey}-data`);
   const extraText = extraTextarea ? extraTextarea.value.trim() : '';
 
-  if (sentences.length === 0 && !extraText) {
+  // Reading level sentences (academic section only)
+  const readingLines = sectionKey === 'academic' ? getReadingLevelSentences() : [];
+
+  const hasContent = sentences.length > 0 || extraText || readingLines.length > 0 || isNeed;
+
+  if (!hasContent) {
     outputEl.innerHTML = '<span style="color:var(--gray-400);font-style:italic;">Answer the questions above to generate present level text.</span>';
-  } else {
-    let html = '';
-    if (extraText) {
-      html += `<p>${interpolate(extraText)}</p>`;
-    }
-    sentences.forEach(s => { html += `<p>${s}</p>`; });
-    outputEl.innerHTML = html;
+    updateGoalSuggestions(sectionKey);
+    updateTabIndicator(sectionKey);
+    return;
   }
+
+  let html = '';
+
+  // IEP date intro sentence
+  const iepDate = formatIEPDate();
+  if (iepDate) {
+    html += `<p>Based on data gathered as of ${iepDate}, the following reflects ${interpolate("{name}'s")} present levels of performance.</p>`;
+  }
+
+  if (extraText) html += `<p>${interpolate(extraText)}</p>`;
+  readingLines.forEach(s => { html += `<p>${s}</p>`; });
+  sentences.forEach(s => { html += `<p>${s}</p>`; });
+
+  // Area of need closing sentence
+  const needSentence = flagged
+    ? `Based on current assessment data, ${section.label} is currently identified as an area of need for ${interpolate('{name}')}.`
+    : `Based on current assessment data, ${section.label} is not currently identified as an area of need for ${interpolate('{name}')}.`;
+  html += `<p><em>${needSentence}</em></p>`;
+
+  outputEl.innerHTML = html;
 
   // Show/hide goals
   updateGoalSuggestions(sectionKey);
@@ -294,6 +337,8 @@ function generateDocument() {
     </div>
   `;
 
+  const iepDateFmt = formatIEPDate();
+
   Object.entries(SECTIONS).forEach(([key, section]) => {
     const hasNoAnswers = section.questions.some(q => state.answers[q.id] === 'no');
     const isNeed       = state.needs[key] || false;
@@ -301,6 +346,8 @@ function generateDocument() {
 
     const extraEl    = document.getElementById(`${key}-data`);
     const extraText  = extraEl ? extraEl.value.trim() : '';
+
+    const readingLines = key === 'academic' ? getReadingLevelSentences() : [];
 
     const sentences = section.questions
       .map(q => {
@@ -310,14 +357,20 @@ function generateDocument() {
       })
       .filter(Boolean);
 
-    if (sentences.length === 0 && !extraText && !flagged) return; // skip empty untouched sections
+    if (sentences.length === 0 && !extraText && !flagged && readingLines.length === 0) return;
+
+    const needSentence = flagged
+      ? `Based on current assessment data, ${section.label} is currently identified as an area of need for ${interpolate('{name}')}.`
+      : `Based on current assessment data, ${section.label} is not currently identified as an area of need for ${interpolate('{name}')}.`;
 
     html += `
       <div class="doc-section">
         <h3 class="${flagged ? 'need-section' : ''}">${section.label}${flagged ? ' ★ Area of Need' : ''}</h3>
+        ${iepDateFmt ? `<p>Based on data gathered as of ${iepDateFmt}, the following reflects ${interpolate("{name}'s")} present levels of performance.</p>` : ''}
         ${extraText ? `<p>${interpolate(extraText)}</p>` : ''}
+        ${readingLines.map(s => `<p>${s}</p>`).join('')}
         ${sentences.map(s => `<p>${s}</p>`).join('')}
-        ${(sentences.length === 0 && !extraText) ? '<p><em>No information entered for this section.</em></p>' : ''}
+        <p><em>${needSentence}</em></p>
       </div>
     `;
   });
@@ -417,6 +470,12 @@ function init() {
 
   // Extra textareas
   document.getElementById('sections-container').addEventListener('input', handleExtraTextChange);
+
+  // Academic reading level dropdowns
+  ['ac-instr-level', 'ac-indep-level', 'ac-instr-wpm', 'ac-indep-wpm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => updateSectionOutput('academic'));
+  });
 
   // Document actions
   document.getElementById('generate-btn').addEventListener('click', generateDocument);

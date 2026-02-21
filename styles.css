@@ -263,6 +263,23 @@ header .subtitle {
   box-shadow: 0 0 0 3px rgba(37,99,235,.12);
 }
 
+/* ---- Reading Level Data Block ---- */
+.level-data {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-200);
+}
+.level-data-label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gray-500);
+  margin-bottom: .75rem;
+}
+
 /* ---- Questions Grid ---- */
 .questions-grid {
   display: grid;
