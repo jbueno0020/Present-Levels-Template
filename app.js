@@ -7,7 +7,8 @@ const state = {
   pronouns: 'he',
   studentName: '',
   answers: {},   // { questionId: 'yes' | 'no' | 'na' }
-  needs: {}      // { sectionKey: boolean }
+  needs: {},     // { sectionKey: boolean }
+  cbmEntries: [] // [{ assessmentId, values: { fieldId: value } }]
 };
 
 /* ---- Pronoun helpers ---- */
@@ -36,24 +37,178 @@ function formatIEPDate() {
   return new Date(val + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-/* ---- Academic data sentences (reading levels, fluency, CBMs) ---- */
+/* ---- Academic data sentences (reading levels, fluency) ---- */
 function getAcademicDataSentences() {
   const instrLevel  = document.getElementById('ac-instr-level');
   const indepLevel  = document.getElementById('ac-indep-level');
   const instrWPM    = document.getElementById('ac-instr-wpm');
   const indepWPM    = document.getElementById('ac-indep-wpm');
-  const mathExcel   = document.getElementById('ac-math-excel');
-  const mapMath     = document.getElementById('ac-map-math');
-  const mapReading  = document.getElementById('ac-map-reading');
   const out = [];
   if (instrLevel?.value)  out.push(interpolate(`{name} reads instructionally at ${instrLevel.value}.`));
   if (indepLevel?.value)  out.push(interpolate(`{name} reads independently at ${indepLevel.value}.`));
   if (instrWPM?.value)    out.push(interpolate(`{name}'s oral reading fluency at the instructional level is ${instrWPM.value}.`));
   if (indepWPM?.value)    out.push(interpolate(`{name}'s oral reading fluency at the independent level is ${indepWPM.value}.`));
-  if (mathExcel?.value)   out.push(interpolate(`On the Math Excel mathematics curriculum-based measure (CBM), {name} performed at ${mathExcel.value}.`));
-  if (mapMath?.value)     out.push(interpolate(`{name} earned a RIT score of ${mapMath.value} on the MAP Growth Mathematics assessment.`));
-  if (mapReading?.value)  out.push(interpolate(`{name} earned a RIT score of ${mapReading.value} on the MAP Growth Reading assessment.`));
+  // CBM assessment sentences
+  getCBMSentences().forEach(s => out.push(s));
   return out;
+}
+
+/* ---- CBM: collect sentences from all added assessments ---- */
+function getCBMSentences() {
+  const out = [];
+  state.cbmEntries.forEach(entry => {
+    const assessment = CBM_ASSESSMENTS.find(a => a.id === entry.assessmentId);
+    if (!assessment) return;
+    assessment.fields.forEach(field => {
+      const val = entry.values[field.id];
+      if (!val) return;
+      const sentence = field.sentence.replace(/\{value\}/g, val);
+      out.push(interpolate(sentence));
+    });
+  });
+  return out;
+}
+
+/* ---- CBM: populate the assessment picker ---- */
+function buildCBMPicker() {
+  const picker = document.getElementById('cbm-picker');
+  if (!picker) return;
+  CBM_ASSESSMENTS.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = `${a.name} (${a.category}, ${a.grades})`;
+    picker.appendChild(opt);
+  });
+}
+
+/* ---- CBM: render fields for selected assessment ---- */
+function renderCBMFields(assessmentId) {
+  const container = document.getElementById('cbm-fields-container');
+  container.innerHTML = '';
+  if (!assessmentId) return;
+
+  const assessment = CBM_ASSESSMENTS.find(a => a.id === assessmentId);
+  if (!assessment) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'cbm-fields-wrapper';
+  wrapper.innerHTML = `<p class="cbm-assessment-name">${assessment.name} <span class="cbm-meta">${assessment.category} &middot; Grades ${assessment.grades}</span></p>`;
+
+  const grid = document.createElement('div');
+  grid.className = 'grid-2';
+
+  assessment.fields.forEach(field => {
+    const div = document.createElement('div');
+    div.className = 'field';
+    const label = document.createElement('label');
+    label.textContent = field.label;
+    div.appendChild(label);
+
+    let input;
+    if (field.type === 'select') {
+      input = document.createElement('select');
+      input.id = `cbm-field-${field.id}`;
+      const emptyOpt = document.createElement('option');
+      emptyOpt.value = '';
+      emptyOpt.textContent = '— Select —';
+      input.appendChild(emptyOpt);
+      field.options.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.value;
+        opt.textContent = o.label;
+        input.appendChild(opt);
+      });
+    } else {
+      input = document.createElement('input');
+      input.id = `cbm-field-${field.id}`;
+      input.type = field.type === 'number' ? 'number' : 'text';
+      if (field.placeholder) input.placeholder = field.placeholder;
+    }
+    div.appendChild(input);
+    grid.appendChild(div);
+  });
+
+  wrapper.appendChild(grid);
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'cbm-btn-row';
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn-primary cbm-add-btn';
+  addBtn.textContent = 'Add Assessment Data';
+  addBtn.addEventListener('click', () => addCBMEntry(assessmentId));
+  btnRow.appendChild(addBtn);
+  wrapper.appendChild(btnRow);
+
+  container.appendChild(wrapper);
+}
+
+/* ---- CBM: add the current entry ---- */
+function addCBMEntry(assessmentId) {
+  const assessment = CBM_ASSESSMENTS.find(a => a.id === assessmentId);
+  if (!assessment) return;
+
+  const values = {};
+  let hasAnyValue = false;
+  assessment.fields.forEach(field => {
+    const el = document.getElementById(`cbm-field-${field.id}`);
+    if (el && el.value.trim()) {
+      values[field.id] = el.value.trim();
+      hasAnyValue = true;
+    }
+  });
+
+  if (!hasAnyValue) return;
+
+  state.cbmEntries.push({ assessmentId, values });
+
+  // Reset picker and fields
+  document.getElementById('cbm-picker').value = '';
+  document.getElementById('cbm-fields-container').innerHTML = '';
+
+  renderCBMAddedList();
+  updateSectionOutput('academic');
+}
+
+/* ---- CBM: render the list of added assessments ---- */
+function renderCBMAddedList() {
+  const listEl = document.getElementById('cbm-added-list');
+  listEl.innerHTML = '';
+  if (state.cbmEntries.length === 0) return;
+
+  state.cbmEntries.forEach((entry, idx) => {
+    const assessment = CBM_ASSESSMENTS.find(a => a.id === entry.assessmentId);
+    if (!assessment) return;
+
+    const card = document.createElement('div');
+    card.className = 'cbm-entry-card';
+
+    const header = document.createElement('div');
+    header.className = 'cbm-entry-header';
+    header.innerHTML = `<strong>${assessment.name}</strong>`;
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'cbm-remove-btn';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', () => {
+      state.cbmEntries.splice(idx, 1);
+      renderCBMAddedList();
+      updateSectionOutput('academic');
+    });
+    header.appendChild(removeBtn);
+    card.appendChild(header);
+
+    const sentencesList = document.createElement('ul');
+    sentencesList.className = 'cbm-entry-sentences';
+    assessment.fields.forEach(field => {
+      const val = entry.values[field.id];
+      if (!val) return;
+      const li = document.createElement('li');
+      li.textContent = interpolate(field.sentence.replace(/\{value\}/g, val));
+      sentencesList.appendChild(li);
+    });
+    card.appendChild(sentencesList);
+
+    listEl.appendChild(card);
+  });
 }
 
 /* ---- Build question cards for every section ---- */
@@ -445,6 +600,7 @@ function handleStudentInfoChange() {
 
   // Refresh all section outputs
   Object.keys(SECTIONS).forEach(key => updateSectionOutput(key));
+  renderCBMAddedList();
   updateSummary();
 }
 
@@ -460,6 +616,7 @@ function handleExtraTextChange(e) {
 /* ---- Init ---- */
 function init() {
   buildQuestions();
+  buildCBMPicker();
   updateSummary();
 
   // Tab clicks
@@ -481,12 +638,15 @@ function init() {
   // Extra textareas
   document.getElementById('sections-container').addEventListener('input', handleExtraTextChange);
 
-  // Academic dropdowns (reading levels, fluency, CBMs)
-  ['ac-instr-level', 'ac-indep-level', 'ac-instr-wpm', 'ac-indep-wpm',
-   'ac-math-excel', 'ac-map-math', 'ac-map-reading'].forEach(id => {
+  // Academic dropdowns (reading levels, fluency)
+  ['ac-instr-level', 'ac-indep-level', 'ac-instr-wpm', 'ac-indep-wpm'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', () => updateSectionOutput('academic'));
   });
+
+  // CBM assessment picker
+  const cbmPicker = document.getElementById('cbm-picker');
+  if (cbmPicker) cbmPicker.addEventListener('change', (e) => renderCBMFields(e.target.value));
 
   // Ensure pronouns changes are captured via both input and change events
   const pronounsEl = document.getElementById('pronouns');

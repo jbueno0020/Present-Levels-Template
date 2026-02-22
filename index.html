@@ -168,52 +168,16 @@
             </div>
           </div>
 
-          <div class="level-data">
-            <p class="level-data-label">Curriculum-Based Assessment Data</p>
-            <div class="grid-2">
-              <div class="field">
-                <label>Math Excel CBM Level</label>
-                <select id="ac-math-excel">
-                  <option value="">— Not assessed / Select —</option>
-                  <option value="the Intensive level (significantly below grade-level benchmark)">Intensive</option>
-                  <option value="the Strategic level (approaching grade-level benchmark)">Strategic</option>
-                  <option value="the Benchmark level (meeting grade-level expectations)">Benchmark</option>
-                  <option value="the Advanced level (exceeding grade-level expectations)">Advanced</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>MAP Growth — Math RIT Score</label>
-                <select id="ac-map-math">
-                  <option value="">— Not assessed / Select —</option>
-                  <option value="below 160">Below 160</option>
-                  <option value="160–169">160–169</option>
-                  <option value="170–179">170–179</option>
-                  <option value="180–189">180–189</option>
-                  <option value="190–199">190–199</option>
-                  <option value="200–209">200–209</option>
-                  <option value="210–219">210–219</option>
-                  <option value="220–229">220–229</option>
-                  <option value="230–239">230–239</option>
-                  <option value="240 or above">240 or above</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>MAP Growth — English / Reading RIT Score</label>
-                <select id="ac-map-reading">
-                  <option value="">— Not assessed / Select —</option>
-                  <option value="below 160">Below 160</option>
-                  <option value="160–169">160–169</option>
-                  <option value="170–179">170–179</option>
-                  <option value="180–189">180–189</option>
-                  <option value="190–199">190–199</option>
-                  <option value="200–209">200–209</option>
-                  <option value="210–219">210–219</option>
-                  <option value="220–229">220–229</option>
-                  <option value="230–239">230–239</option>
-                  <option value="240 or above">240 or above</option>
-                </select>
-              </div>
+          <div class="level-data" id="cbm-section">
+            <p class="level-data-label">Curriculum-Based Measurement (CBM) Data</p>
+            <div class="field" style="margin-bottom: 1rem;">
+              <label>Select CBM Assessment</label>
+              <select id="cbm-picker">
+                <option value="">— Select an assessment tool —</option>
+              </select>
             </div>
+            <div id="cbm-fields-container"></div>
+            <div id="cbm-added-list"></div>
           </div>
 
           <div class="questions-grid" id="academic-questions"></div>
