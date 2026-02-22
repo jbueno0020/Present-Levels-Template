@@ -1,5 +1,6 @@
 /* =========================================================
-   data.js – Question bank, sentence templates, and goal bank
+   data.js – Question bank, sentence templates, goal bank,
+             and Curriculum-Based Measurement (CBM) definitions
    =========================================================
    Each question has:
      id       – unique key
@@ -15,6 +16,644 @@
      {He}    – capitalised he/she/they
      {His}   – capitalised his/her/their
    ========================================================= */
+
+/* ----------------------------------------------------------
+   CBM ASSESSMENTS – Curriculum-Based Measurement Tools
+   Each assessment defines:
+     id       – unique key
+     name     – display name
+     category – subject area(s)
+     grades   – grade range
+     fields   – array of input fields
+       id          – field key (unique within the assessment)
+       label       – display label
+       type        – 'select' | 'number' | 'text'
+       options     – (select only) array of { value, label }
+       placeholder – (number/text) placeholder text
+       suffix      – (optional) unit label appended to the value
+       sentence    – template string; {value} is replaced with the
+                     user-entered data, plus pronoun tokens
+   ---------------------------------------------------------- */
+const CBM_ASSESSMENTS = [
+
+  /* ---- DIBELS 8th Edition ---- */
+  {
+    id: 'dibels',
+    name: 'DIBELS 8th Edition',
+    category: 'Reading',
+    grades: 'K–8',
+    fields: [
+      {
+        id: 'composite',
+        label: 'Composite Score Level',
+        type: 'select',
+        options: [
+          { value: 'At/Above Benchmark', label: 'At/Above Benchmark' },
+          { value: 'Below Benchmark', label: 'Below Benchmark' },
+          { value: 'Well Below Benchmark', label: 'Well Below Benchmark' }
+        ],
+        sentence: 'On the DIBELS 8th Edition, {name} scored at the {value} level on the Composite Score.'
+      },
+      {
+        id: 'orf_wcpm',
+        label: 'Oral Reading Fluency (WCPM)',
+        type: 'number',
+        placeholder: 'e.g. 45',
+        suffix: 'WCPM',
+        sentence: '{name} read {value} words correct per minute (WCPM) on the DIBELS Oral Reading Fluency measure.'
+      },
+      {
+        id: 'orf_accuracy',
+        label: 'ORF Accuracy (%)',
+        type: 'number',
+        placeholder: 'e.g. 92',
+        suffix: '%',
+        sentence: '{name} demonstrated {value}% accuracy on the DIBELS Oral Reading Fluency measure.'
+      },
+      {
+        id: 'nwf_cls',
+        label: 'Nonsense Word Fluency — Correct Letter Sounds',
+        type: 'number',
+        placeholder: 'e.g. 30',
+        sentence: '{name} produced {value} correct letter sounds per minute on the DIBELS Nonsense Word Fluency measure.'
+      },
+      {
+        id: 'nwf_wrc',
+        label: 'Nonsense Word Fluency — Whole Words Read',
+        type: 'number',
+        placeholder: 'e.g. 8',
+        sentence: '{name} read {value} whole words correctly per minute on the DIBELS Nonsense Word Fluency measure.'
+      },
+      {
+        id: 'psf',
+        label: 'Phoneme Segmentation Fluency',
+        type: 'number',
+        placeholder: 'e.g. 40',
+        sentence: '{name} correctly segmented {value} phonemes per minute on the DIBELS Phoneme Segmentation Fluency measure.'
+      },
+      {
+        id: 'lnf',
+        label: 'Letter Naming Fluency',
+        type: 'number',
+        placeholder: 'e.g. 35',
+        sentence: '{name} named {value} letters per minute on the DIBELS Letter Naming Fluency measure.'
+      },
+      {
+        id: 'wrf',
+        label: 'Word Reading Fluency',
+        type: 'number',
+        placeholder: 'e.g. 25',
+        sentence: '{name} read {value} words correctly per minute on the DIBELS Word Reading Fluency measure.'
+      },
+      {
+        id: 'maze',
+        label: 'Maze (Comprehension)',
+        type: 'number',
+        placeholder: 'e.g. 12',
+        sentence: '{name} answered {value} maze items correctly on the DIBELS Maze comprehension measure.'
+      }
+    ]
+  },
+
+  /* ---- Acadience Reading ---- */
+  {
+    id: 'acadience',
+    name: 'Acadience Reading',
+    category: 'Reading',
+    grades: 'K–6',
+    fields: [
+      {
+        id: 'composite',
+        label: 'Composite Score Level',
+        type: 'select',
+        options: [
+          { value: 'At/Above Benchmark', label: 'At/Above Benchmark' },
+          { value: 'Below Benchmark', label: 'Below Benchmark' },
+          { value: 'Well Below Benchmark', label: 'Well Below Benchmark' }
+        ],
+        sentence: 'On the Acadience Reading assessment, {name} scored at the {value} level on the Composite Score.'
+      },
+      {
+        id: 'orf_wcpm',
+        label: 'Oral Reading Fluency (WCPM)',
+        type: 'number',
+        placeholder: 'e.g. 55',
+        suffix: 'WCPM',
+        sentence: '{name} read {value} words correct per minute (WCPM) on the Acadience Oral Reading Fluency measure.'
+      },
+      {
+        id: 'orf_accuracy',
+        label: 'ORF Accuracy (%)',
+        type: 'number',
+        placeholder: 'e.g. 95',
+        suffix: '%',
+        sentence: '{name} demonstrated {value}% accuracy on the Acadience Oral Reading Fluency measure.'
+      },
+      {
+        id: 'nwf_cls',
+        label: 'Nonsense Word Fluency — Correct Letter Sounds',
+        type: 'number',
+        placeholder: 'e.g. 28',
+        sentence: '{name} produced {value} correct letter sounds per minute on the Acadience Nonsense Word Fluency measure.'
+      },
+      {
+        id: 'maze',
+        label: 'Maze (Comprehension)',
+        type: 'number',
+        placeholder: 'e.g. 10',
+        sentence: '{name} answered {value} maze items correctly on the Acadience Maze comprehension measure.'
+      }
+    ]
+  },
+
+  /* ---- AIMSweb Plus ---- */
+  {
+    id: 'aimsweb',
+    name: 'aimswebPlus',
+    category: 'Reading & Math',
+    grades: 'K–8',
+    fields: [
+      {
+        id: 'rcbm',
+        label: 'Reading CBM — Oral Reading Fluency (WCPM)',
+        type: 'number',
+        placeholder: 'e.g. 60',
+        suffix: 'WCPM',
+        sentence: '{name} read {value} words correct per minute on the aimswebPlus Reading CBM (R-CBM) measure.'
+      },
+      {
+        id: 'maze',
+        label: 'Maze — Correct Responses',
+        type: 'number',
+        placeholder: 'e.g. 14',
+        sentence: '{name} correctly identified {value} maze items on the aimswebPlus Maze comprehension measure.'
+      },
+      {
+        id: 'mcomp',
+        label: 'Math Computation (M-COMP) — Digits Correct',
+        type: 'number',
+        placeholder: 'e.g. 22',
+        sentence: '{name} answered {value} digits correct on the aimswebPlus Math Computation (M-COMP) measure.'
+      },
+      {
+        id: 'mcap',
+        label: 'Math Concepts & Applications (M-CAP) — Correct',
+        type: 'number',
+        placeholder: 'e.g. 18',
+        sentence: '{name} answered {value} items correctly on the aimswebPlus Math Concepts and Applications (M-CAP) measure.'
+      },
+      {
+        id: 'percentile',
+        label: 'National Percentile Rank',
+        type: 'number',
+        placeholder: 'e.g. 35',
+        sentence: '{name} scored at the {value}th national percentile on the aimswebPlus assessment.'
+      },
+      {
+        id: 'tier',
+        label: 'Benchmark Status / Tier',
+        type: 'select',
+        options: [
+          { value: 'Tier 1 (low risk — at or above benchmark)', label: 'Tier 1 — At/Above Benchmark' },
+          { value: 'Tier 2 (some risk — below benchmark)', label: 'Tier 2 — Below Benchmark' },
+          { value: 'Tier 3 (high risk — well below benchmark)', label: 'Tier 3 — Well Below Benchmark' }
+        ],
+        sentence: '{name} is currently placed at {value} on the aimswebPlus assessment.'
+      }
+    ]
+  },
+
+  /* ---- easyCBM ---- */
+  {
+    id: 'easycbm',
+    name: 'easyCBM',
+    category: 'Reading & Math',
+    grades: 'K–8',
+    fields: [
+      {
+        id: 'prf',
+        label: 'Passage Reading Fluency (WCPM)',
+        type: 'number',
+        placeholder: 'e.g. 52',
+        suffix: 'WCPM',
+        sentence: '{name} read {value} words correct per minute on the easyCBM Passage Reading Fluency measure.'
+      },
+      {
+        id: 'reading_score',
+        label: 'Reading Comprehension Score',
+        type: 'number',
+        placeholder: 'e.g. 12',
+        sentence: '{name} scored {value} on the easyCBM Reading Comprehension measure.'
+      },
+      {
+        id: 'math_score',
+        label: 'Math Score',
+        type: 'number',
+        placeholder: 'e.g. 10',
+        sentence: '{name} scored {value} on the easyCBM Mathematics measure.'
+      },
+      {
+        id: 'risk',
+        label: 'Risk Level',
+        type: 'select',
+        options: [
+          { value: 'Low Risk (at or above grade-level benchmark)', label: 'Low Risk' },
+          { value: 'Some Risk (approaching grade-level benchmark)', label: 'Some Risk' },
+          { value: 'High Risk (below grade-level benchmark)', label: 'High Risk' }
+        ],
+        sentence: 'Based on the easyCBM assessment, {name} is identified as {value}.'
+      }
+    ]
+  },
+
+  /* ---- FAST (FastBridge) ---- */
+  {
+    id: 'fast',
+    name: 'FAST (FastBridge)',
+    category: 'Reading & Math',
+    grades: 'K–8',
+    fields: [
+      {
+        id: 'cbmreading',
+        label: 'CBMreading — Oral Reading Fluency (WCPM)',
+        type: 'number',
+        placeholder: 'e.g. 48',
+        suffix: 'WCPM',
+        sentence: '{name} read {value} words correct per minute on the FAST CBMreading measure.'
+      },
+      {
+        id: 'areading',
+        label: 'aReading Scaled Score',
+        type: 'number',
+        placeholder: 'e.g. 475',
+        sentence: '{name} earned a scaled score of {value} on the FAST aReading adaptive assessment.'
+      },
+      {
+        id: 'cbmmath',
+        label: 'CBMmath Score',
+        type: 'number',
+        placeholder: 'e.g. 20',
+        sentence: '{name} scored {value} on the FAST CBMmath measure.'
+      },
+      {
+        id: 'amath',
+        label: 'aMath Scaled Score',
+        type: 'number',
+        placeholder: 'e.g. 210',
+        sentence: '{name} earned a scaled score of {value} on the FAST aMath adaptive assessment.'
+      },
+      {
+        id: 'risk',
+        label: 'Risk Level',
+        type: 'select',
+        options: [
+          { value: 'Low Risk (at or above benchmark)', label: 'Low Risk' },
+          { value: 'Some Risk (approaching benchmark)', label: 'Some Risk' },
+          { value: 'High Risk (below benchmark)', label: 'High Risk' }
+        ],
+        sentence: 'Based on the FAST assessment, {name} is identified as {value}.'
+      }
+    ]
+  },
+
+  /* ---- i-Ready (Curriculum Associates) ---- */
+  {
+    id: 'iready',
+    name: 'i-Ready Diagnostic',
+    category: 'Reading & Math',
+    grades: 'K–12',
+    fields: [
+      {
+        id: 'reading_scale',
+        label: 'Reading Scale Score',
+        type: 'number',
+        placeholder: 'e.g. 450',
+        sentence: '{name} earned a reading scale score of {value} on the i-Ready Diagnostic assessment.'
+      },
+      {
+        id: 'reading_placement',
+        label: 'Reading Grade-Level Placement',
+        type: 'select',
+        options: [
+          { value: 'On or Above Grade Level in Reading', label: 'On or Above Grade Level' },
+          { value: 'One Grade Level Below in Reading', label: 'One Grade Below' },
+          { value: 'Two or More Grade Levels Below in Reading', label: 'Two or More Grades Below' }
+        ],
+        sentence: '{name} is currently performing {value} based on the i-Ready Diagnostic.'
+      },
+      {
+        id: 'math_scale',
+        label: 'Math Scale Score',
+        type: 'number',
+        placeholder: 'e.g. 420',
+        sentence: '{name} earned a math scale score of {value} on the i-Ready Diagnostic assessment.'
+      },
+      {
+        id: 'math_placement',
+        label: 'Math Grade-Level Placement',
+        type: 'select',
+        options: [
+          { value: 'On or Above Grade Level in Math', label: 'On or Above Grade Level' },
+          { value: 'One Grade Level Below in Math', label: 'One Grade Below' },
+          { value: 'Two or More Grade Levels Below in Math', label: 'Two or More Grades Below' }
+        ],
+        sentence: '{name} is currently performing {value} based on the i-Ready Diagnostic.'
+      },
+      {
+        id: 'overall_level',
+        label: 'Overall Performance Level',
+        type: 'select',
+        options: [
+          { value: 'Exceeds Standards', label: 'Exceeds Standards' },
+          { value: 'Meets Standards', label: 'Meets Standards' },
+          { value: 'Approaching Standards', label: 'Approaching Standards' },
+          { value: 'Needs Support', label: 'Needs Support' }
+        ],
+        sentence: 'Overall, {name} is performing at the {value} level on the i-Ready Diagnostic assessment.'
+      }
+    ]
+  },
+
+  /* ---- MAP Growth (NWEA) ---- */
+  {
+    id: 'map',
+    name: 'MAP Growth (NWEA)',
+    category: 'Reading & Math',
+    grades: 'K–12',
+    fields: [
+      {
+        id: 'reading_rit',
+        label: 'Reading RIT Score',
+        type: 'number',
+        placeholder: 'e.g. 195',
+        sentence: '{name} earned a RIT score of {value} on the MAP Growth Reading assessment.'
+      },
+      {
+        id: 'reading_percentile',
+        label: 'Reading Percentile Rank',
+        type: 'number',
+        placeholder: 'e.g. 42',
+        sentence: '{name} scored at the {value}th percentile in Reading on the MAP Growth assessment.'
+      },
+      {
+        id: 'math_rit',
+        label: 'Math RIT Score',
+        type: 'number',
+        placeholder: 'e.g. 205',
+        sentence: '{name} earned a RIT score of {value} on the MAP Growth Mathematics assessment.'
+      },
+      {
+        id: 'math_percentile',
+        label: 'Math Percentile Rank',
+        type: 'number',
+        placeholder: 'e.g. 38',
+        sentence: '{name} scored at the {value}th percentile in Mathematics on the MAP Growth assessment.'
+      },
+      {
+        id: 'language_rit',
+        label: 'Language Usage RIT Score',
+        type: 'number',
+        placeholder: 'e.g. 200',
+        sentence: '{name} earned a RIT score of {value} on the MAP Growth Language Usage assessment.'
+      }
+    ]
+  },
+
+  /* ---- Star Assessments (Renaissance) ---- */
+  {
+    id: 'star',
+    name: 'Star Assessments (Renaissance)',
+    category: 'Reading & Math',
+    grades: 'K–12',
+    fields: [
+      {
+        id: 'reading_ss',
+        label: 'Star Reading Scaled Score',
+        type: 'number',
+        placeholder: 'e.g. 450',
+        sentence: '{name} earned a scaled score of {value} on the Star Reading assessment.'
+      },
+      {
+        id: 'reading_ge',
+        label: 'Star Reading Grade Equivalent',
+        type: 'text',
+        placeholder: 'e.g. 3.5',
+        sentence: '{name} is reading at a {value} grade equivalent on the Star Reading assessment.'
+      },
+      {
+        id: 'reading_pr',
+        label: 'Star Reading Percentile Rank',
+        type: 'number',
+        placeholder: 'e.g. 40',
+        sentence: '{name} scored at the {value}th percentile on the Star Reading assessment.'
+      },
+      {
+        id: 'math_ss',
+        label: 'Star Math Scaled Score',
+        type: 'number',
+        placeholder: 'e.g. 520',
+        sentence: '{name} earned a scaled score of {value} on the Star Math assessment.'
+      },
+      {
+        id: 'math_ge',
+        label: 'Star Math Grade Equivalent',
+        type: 'text',
+        placeholder: 'e.g. 2.8',
+        sentence: '{name} is performing at a {value} grade equivalent on the Star Math assessment.'
+      },
+      {
+        id: 'math_pr',
+        label: 'Star Math Percentile Rank',
+        type: 'number',
+        placeholder: 'e.g. 35',
+        sentence: '{name} scored at the {value}th percentile on the Star Math assessment.'
+      }
+    ]
+  },
+
+  /* ---- Star CBM (Renaissance) ---- */
+  {
+    id: 'starcbm',
+    name: 'Star CBM (Renaissance)',
+    category: 'Reading & Math',
+    grades: 'K–6',
+    fields: [
+      {
+        id: 'reading_wcpm',
+        label: 'Star CBM Reading — Oral Reading Fluency (WCPM)',
+        type: 'number',
+        placeholder: 'e.g. 55',
+        suffix: 'WCPM',
+        sentence: '{name} read {value} words correct per minute on the Star CBM Reading measure.'
+      },
+      {
+        id: 'reading_benchmark',
+        label: 'Star CBM Reading — Benchmark Status',
+        type: 'select',
+        options: [
+          { value: 'At/Above Benchmark', label: 'At/Above Benchmark' },
+          { value: 'On Watch', label: 'On Watch' },
+          { value: 'Intervention', label: 'Intervention' },
+          { value: 'Urgent Intervention', label: 'Urgent Intervention' }
+        ],
+        sentence: '{name} is performing at the {value} level on the Star CBM Reading assessment.'
+      },
+      {
+        id: 'math_score',
+        label: 'Star CBM Math Score',
+        type: 'number',
+        placeholder: 'e.g. 18',
+        sentence: '{name} scored {value} on the Star CBM Math assessment.'
+      },
+      {
+        id: 'math_benchmark',
+        label: 'Star CBM Math — Benchmark Status',
+        type: 'select',
+        options: [
+          { value: 'At/Above Benchmark', label: 'At/Above Benchmark' },
+          { value: 'On Watch', label: 'On Watch' },
+          { value: 'Intervention', label: 'Intervention' },
+          { value: 'Urgent Intervention', label: 'Urgent Intervention' }
+        ],
+        sentence: '{name} is performing at the {value} level on the Star CBM Math assessment.'
+      }
+    ]
+  },
+
+  /* ---- Woodcock-Johnson IV (WJ-IV) ---- */
+  {
+    id: 'wjiv',
+    name: 'Woodcock-Johnson IV (WJ-IV)',
+    category: 'Achievement',
+    grades: 'K–12+',
+    fields: [
+      {
+        id: 'reading_ss',
+        label: 'Broad Reading — Standard Score',
+        type: 'number',
+        placeholder: 'e.g. 85',
+        sentence: '{name} earned a standard score of {value} in Broad Reading on the Woodcock-Johnson IV Tests of Achievement.'
+      },
+      {
+        id: 'reading_ge',
+        label: 'Broad Reading — Grade Equivalent',
+        type: 'text',
+        placeholder: 'e.g. 2.5',
+        sentence: '{name} is performing at a {value} grade equivalent in Broad Reading on the Woodcock-Johnson IV.'
+      },
+      {
+        id: 'reading_pr',
+        label: 'Broad Reading — Percentile Rank',
+        type: 'number',
+        placeholder: 'e.g. 16',
+        sentence: '{name} scored at the {value}th percentile in Broad Reading on the Woodcock-Johnson IV.'
+      },
+      {
+        id: 'math_ss',
+        label: 'Broad Mathematics — Standard Score',
+        type: 'number',
+        placeholder: 'e.g. 90',
+        sentence: '{name} earned a standard score of {value} in Broad Mathematics on the Woodcock-Johnson IV Tests of Achievement.'
+      },
+      {
+        id: 'math_ge',
+        label: 'Broad Mathematics — Grade Equivalent',
+        type: 'text',
+        placeholder: 'e.g. 3.2',
+        sentence: '{name} is performing at a {value} grade equivalent in Broad Mathematics on the Woodcock-Johnson IV.'
+      },
+      {
+        id: 'math_pr',
+        label: 'Broad Mathematics — Percentile Rank',
+        type: 'number',
+        placeholder: 'e.g. 25',
+        sentence: '{name} scored at the {value}th percentile in Broad Mathematics on the Woodcock-Johnson IV.'
+      },
+      {
+        id: 'writing_ss',
+        label: 'Written Language — Standard Score',
+        type: 'number',
+        placeholder: 'e.g. 82',
+        sentence: '{name} earned a standard score of {value} in Written Language on the Woodcock-Johnson IV Tests of Achievement.'
+      }
+    ]
+  },
+
+  /* ---- WIDA ACCESS (English Learners) ---- */
+  {
+    id: 'wida',
+    name: 'WIDA ACCESS for ELLs',
+    category: 'English Language Proficiency',
+    grades: 'K–12',
+    fields: [
+      {
+        id: 'overall',
+        label: 'Overall Composite Proficiency Level',
+        type: 'select',
+        options: [
+          { value: '1 — Entering', label: 'Level 1 — Entering' },
+          { value: '2 — Emerging', label: 'Level 2 — Emerging' },
+          { value: '3 — Developing', label: 'Level 3 — Developing' },
+          { value: '4 — Expanding', label: 'Level 4 — Expanding' },
+          { value: '5 — Bridging', label: 'Level 5 — Bridging' },
+          { value: '6 — Reaching', label: 'Level 6 — Reaching' }
+        ],
+        sentence: '{name} earned an overall composite proficiency level of {value} on the WIDA ACCESS for ELLs assessment.'
+      },
+      {
+        id: 'listening',
+        label: 'Listening Proficiency Level',
+        type: 'text',
+        placeholder: 'e.g. 3.5',
+        sentence: '{name} earned a {value} proficiency level in Listening on the WIDA ACCESS.'
+      },
+      {
+        id: 'speaking',
+        label: 'Speaking Proficiency Level',
+        type: 'text',
+        placeholder: 'e.g. 2.8',
+        sentence: '{name} earned a {value} proficiency level in Speaking on the WIDA ACCESS.'
+      },
+      {
+        id: 'reading',
+        label: 'Reading Proficiency Level',
+        type: 'text',
+        placeholder: 'e.g. 3.2',
+        sentence: '{name} earned a {value} proficiency level in Reading on the WIDA ACCESS.'
+      },
+      {
+        id: 'writing',
+        label: 'Writing Proficiency Level',
+        type: 'text',
+        placeholder: 'e.g. 2.5',
+        sentence: '{name} earned a {value} proficiency level in Writing on the WIDA ACCESS.'
+      }
+    ]
+  },
+
+  /* ---- Math Excel CBM ---- */
+  {
+    id: 'mathexcel',
+    name: 'Math Excel CBM',
+    category: 'Math',
+    grades: 'K–8',
+    fields: [
+      {
+        id: 'level',
+        label: 'Performance Level',
+        type: 'select',
+        options: [
+          { value: 'the Intensive level (significantly below grade-level benchmark)', label: 'Intensive' },
+          { value: 'the Strategic level (approaching grade-level benchmark)', label: 'Strategic' },
+          { value: 'the Benchmark level (meeting grade-level expectations)', label: 'Benchmark' },
+          { value: 'the Advanced level (exceeding grade-level expectations)', label: 'Advanced' }
+        ],
+        sentence: 'On the Math Excel mathematics curriculum-based measure (CBM), {name} performed at {value}.'
+      }
+    ]
+  }
+];
+
 
 const SECTIONS = {
 

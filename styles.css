@@ -418,6 +418,78 @@ header .subtitle {
 .need-chip.no-need .dot      { background: var(--ok); }
 .need-chip.not-reviewed .dot { background: var(--gray-300); }
 
+/* ---- CBM Assessment Section ---- */
+.cbm-fields-wrapper {
+  margin-top: .75rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-sm);
+}
+.cbm-assessment-name {
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: .75rem;
+}
+.cbm-assessment-name .cbm-meta {
+  font-weight: 400;
+  font-size: .8rem;
+  color: var(--gray-400);
+}
+.cbm-btn-row {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+.cbm-add-btn {
+  padding: .45rem 1.2rem;
+  font-size: .82rem;
+}
+.cbm-entry-card {
+  margin-top: .75rem;
+  padding: .85rem 1rem;
+  background: var(--ok-bg);
+  border: 1.5px solid var(--ok-border);
+  border-radius: var(--radius-sm);
+}
+.cbm-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .5rem;
+}
+.cbm-entry-header strong {
+  font-size: .88rem;
+  color: var(--gray-800);
+}
+.cbm-remove-btn {
+  padding: .2rem .7rem;
+  border: 1.5px solid var(--need-border);
+  border-radius: 999px;
+  background: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--need);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+}
+.cbm-remove-btn:hover {
+  background: var(--need);
+  color: #fff;
+}
+.cbm-entry-sentences {
+  padding-left: 1.2rem;
+  margin: 0;
+}
+.cbm-entry-sentences li {
+  font-size: .82rem;
+  color: var(--gray-600);
+  line-height: 1.55;
+  margin-bottom: .25rem;
+}
+
 /* ---- Document Preview ---- */
 .preview-header {
   display: flex;
