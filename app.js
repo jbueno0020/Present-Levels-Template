@@ -10,7 +10,7 @@ const state = {
   needs: {},          // { sectionKey: boolean }
   cbmEntries: [],     // [{ assessmentId, values: { fieldId: value } }]
   pmDataPoints: [],   // [{ skill, date, score }]
-  compliance: {}      // { requirementId: { completed: bool, text: string } }
+  compliance: {}      // { requirementId: boolean }
 };
 
 /* ---- Pronoun helpers ---- */
@@ -444,47 +444,34 @@ function buildComplianceChecklist() {
   if (!listEl) return;
 
   COMPLIANCE_REQUIREMENTS.forEach(req => {
-    state.compliance[req.id] = state.compliance[req.id] || { completed: false, text: '' };
-
-    const item = document.createElement('div');
-    item.className = `compliance-item ${req.category}`;
-    item.id = `compliance-${req.id}`;
+    state.compliance[req.id] = state.compliance[req.id] || false;
 
     const categoryBadge = req.category === 'required' ? '<span class="compliance-badge required">Required</span>'
       : req.category === 'conditional' ? '<span class="compliance-badge conditional">Conditional</span>'
       : '<span class="compliance-badge best-practice">Best Practice</span>';
 
+    const item = document.createElement('label');
+    item.className = `compliance-item ${req.category}`;
+    item.id = `compliance-${req.id}`;
     item.innerHTML = `
-      <div class="compliance-item-header">
-        <label class="compliance-check-label">
-          <input type="checkbox" class="compliance-checkbox" data-req="${req.id}" />
-          <span class="compliance-check-mark"></span>
-          <strong>${req.label}</strong>
-          ${categoryBadge}
-        </label>
-      </div>
-      <p class="compliance-description">${req.description}</p>
-      <textarea class="compliance-textarea" data-req="${req.id}" rows="2" placeholder="${req.prompt}"></textarea>
+      <input type="checkbox" class="compliance-checkbox" data-req="${req.id}" />
+      <span class="compliance-check-mark"></span>
+      <span class="compliance-label-text">
+        <strong>${req.label}</strong> ${categoryBadge}
+        <span class="compliance-hint">${req.description}</span>
+      </span>
     `;
     listEl.appendChild(item);
   });
 
-  // Event delegation for compliance checkboxes and textareas
   listEl.addEventListener('change', (e) => {
     const cb = e.target;
-    if (cb.classList.contains('compliance-checkbox')) {
-      const reqId = cb.dataset.req;
-      state.compliance[reqId].completed = cb.checked;
-      const item = document.getElementById(`compliance-${reqId}`);
-      if (item) item.classList.toggle('completed', cb.checked);
-      updateComplianceScore();
-    }
-  });
-  listEl.addEventListener('input', (e) => {
-    const ta = e.target;
-    if (ta.classList.contains('compliance-textarea')) {
-      state.compliance[ta.dataset.req].text = ta.value;
-    }
+    if (!cb.classList.contains('compliance-checkbox')) return;
+    const reqId = cb.dataset.req;
+    state.compliance[reqId] = cb.checked;
+    const item = document.getElementById(`compliance-${reqId}`);
+    if (item) item.classList.toggle('completed', cb.checked);
+    updateComplianceScore();
   });
   updateComplianceScore();
 }
@@ -493,7 +480,7 @@ function updateComplianceScore() {
   const scoreEl = document.getElementById('compliance-score');
   if (!scoreEl) return;
   const required = COMPLIANCE_REQUIREMENTS.filter(r => r.category === 'required');
-  const completed = required.filter(r => state.compliance[r.id]?.completed);
+  const completed = required.filter(r => state.compliance[r.id]);
   const total = required.length;
   const count = completed.length;
   scoreEl.textContent = `${count} / ${total} required`;
@@ -1102,18 +1089,6 @@ function generateDocument() {
       </div>
     `;
   });
-
-  // Compliance summary in document
-  const complianceRequired = COMPLIANCE_REQUIREMENTS.filter(r => r.category === 'required');
-  const complianceCompleted = complianceRequired.filter(r => state.compliance[r.id]?.completed);
-  const complianceTexts = COMPLIANCE_REQUIREMENTS.filter(r => state.compliance[r.id]?.text?.trim());
-  if (complianceTexts.length > 0) {
-    html += `<div class="doc-section"><h3>Additional Required Components</h3>`;
-    complianceTexts.forEach(r => {
-      html += `<p><strong>${r.label}:</strong> ${interpolate(state.compliance[r.id].text)}</p>`;
-    });
-    html += `</div>`;
-  }
 
   preview.innerHTML = html;
 
