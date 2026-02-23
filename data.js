@@ -655,6 +655,513 @@ const CBM_ASSESSMENTS = [
 ];
 
 
+/* ----------------------------------------------------------
+   BENCHMARK NORMS – Grade-level benchmark expectations
+   Structured: assessment_id → subtest_id → grade → { fall, winter, spring }
+   Sources: Published benchmark guides (approximate reference values).
+   ---------------------------------------------------------- */
+const BENCHMARK_NORMS = {
+
+  /* DIBELS 8 */
+  dibels: {
+    orf_wcpm: {
+      1: { fall: null, winter: 23,  spring: 47  },
+      2: { fall: 52,   winter: 72,  spring: 87  },
+      3: { fall: 70,   winter: 86,  spring: 104 },
+      4: { fall: 93,   winter: 108, spring: 120 },
+      5: { fall: 104,  winter: 118, spring: 132 },
+      6: { fall: 111,  winter: 125, spring: 140 },
+      7: { fall: 120,  winter: 131, spring: 145 },
+      8: { fall: 126,  winter: 136, spring: 150 }
+    },
+    nwf_cls: {
+      1: { fall: 17, winter: 42, spring: 58 },
+      2: { fall: 54, winter: 62, spring: 68 }
+    },
+    psf: {
+      0: { fall: null, winter: 20, spring: 40 },
+      1: { fall: 40,   winter: 45, spring: null }
+    },
+    lnf: {
+      0: { fall: 8,  winter: 27, spring: 42 },
+      1: { fall: 42, winter: 50, spring: null }
+    },
+    maze: {
+      3: { fall: 6.5,  winter: 10.5, spring: 13.5 },
+      4: { fall: 9.5,  winter: 13.5, spring: 16.5 },
+      5: { fall: 11,   winter: 15.5, spring: 19   },
+      6: { fall: 13,   winter: 17,   spring: 21   }
+    }
+  },
+
+  /* Acadience Reading */
+  acadience: {
+    orf_wcpm: {
+      1: { fall: null, winter: 23,  spring: 47  },
+      2: { fall: 52,   winter: 72,  spring: 87  },
+      3: { fall: 70,   winter: 86,  spring: 104 },
+      4: { fall: 93,   winter: 108, spring: 120 },
+      5: { fall: 104,  winter: 118, spring: 132 },
+      6: { fall: 111,  winter: 125, spring: 140 }
+    }
+  },
+
+  /* MAP Growth / NWEA – Median RIT by grade */
+  mapgrowth: {
+    reading_rit: {
+      0: { fall: 141, winter: 151, spring: 158 },
+      1: { fall: 162, winter: 173, spring: 177 },
+      2: { fall: 175, winter: 184, spring: 188 },
+      3: { fall: 188, winter: 195, spring: 198 },
+      4: { fall: 198, winter: 203, spring: 205 },
+      5: { fall: 206, winter: 209, spring: 211 },
+      6: { fall: 211, winter: 214, spring: 215 },
+      7: { fall: 214, winter: 217, spring: 218 },
+      8: { fall: 217, winter: 219, spring: 220 }
+    },
+    math_rit: {
+      0: { fall: 140, winter: 151, spring: 159 },
+      1: { fall: 162, winter: 173, spring: 180 },
+      2: { fall: 178, winter: 186, spring: 192 },
+      3: { fall: 190, winter: 198, spring: 203 },
+      4: { fall: 200, winter: 207, spring: 211 },
+      5: { fall: 209, winter: 215, spring: 219 },
+      6: { fall: 214, winter: 219, spring: 222 },
+      7: { fall: 220, winter: 224, spring: 226 },
+      8: { fall: 225, winter: 228, spring: 230 }
+    }
+  },
+
+  /* i-Ready Diagnostic – Typical scale score ranges (mid-grade) */
+  iready: {
+    reading_scale: {
+      0: { fall: 346, winter: 371, spring: 395 },
+      1: { fall: 396, winter: 425, spring: 449 },
+      2: { fall: 449, winter: 474, spring: 495 },
+      3: { fall: 491, winter: 510, spring: 524 },
+      4: { fall: 519, winter: 535, spring: 546 },
+      5: { fall: 541, winter: 554, spring: 563 },
+      6: { fall: 558, winter: 568, spring: 575 },
+      7: { fall: 570, winter: 578, spring: 584 },
+      8: { fall: 580, winter: 586, spring: 591 }
+    },
+    math_scale: {
+      0: { fall: 355, winter: 376, spring: 394 },
+      1: { fall: 389, winter: 413, spring: 432 },
+      2: { fall: 429, winter: 451, spring: 467 },
+      3: { fall: 462, winter: 480, spring: 493 },
+      4: { fall: 490, winter: 504, spring: 514 },
+      5: { fall: 510, winter: 522, spring: 530 },
+      6: { fall: 527, winter: 536, spring: 543 },
+      7: { fall: 540, winter: 547, spring: 553 },
+      8: { fall: 550, winter: 556, spring: 561 }
+    }
+  },
+
+  /* Star Reading & Math – Approximate scaled-score benchmarks */
+  star: {
+    reading_ss: {
+      1: { fall: 72,  winter: 148, spring: 206 },
+      2: { fall: 173, winter: 230, spring: 278 },
+      3: { fall: 245, winter: 296, spring: 339 },
+      4: { fall: 319, winter: 371, spring: 407 },
+      5: { fall: 390, winter: 432, spring: 465 },
+      6: { fall: 441, winter: 476, spring: 501 },
+      7: { fall: 478, winter: 506, spring: 525 },
+      8: { fall: 505, winter: 528, spring: 544 }
+    },
+    math_ss: {
+      1: { fall: 218, winter: 306, spring: 379 },
+      2: { fall: 354, winter: 424, spring: 481 },
+      3: { fall: 452, winter: 510, spring: 556 },
+      4: { fall: 528, winter: 577, spring: 616 },
+      5: { fall: 594, winter: 632, spring: 663 },
+      6: { fall: 640, winter: 669, spring: 693 },
+      7: { fall: 674, winter: 699, spring: 718 },
+      8: { fall: 702, winter: 722, spring: 738 }
+    }
+  }
+};
+
+/* Mapping: which CBM_ASSESSMENT fields connect to which BENCHMARK_NORMS entry */
+const CBM_BENCHMARK_MAP = {
+  dibels:    { orf_wcpm: 'dibels.orf_wcpm', nwf_cls: 'dibels.nwf_cls', psf: 'dibels.psf', lnf: 'dibels.lnf', maze: 'dibels.maze' },
+  acadience: { orf_wcpm: 'acadience.orf_wcpm' },
+  mapgrowth: { reading_rit: 'mapgrowth.reading_rit', math_rit: 'mapgrowth.math_rit' },
+  iready:    { reading_scale: 'iready.reading_scale', math_scale: 'iready.math_scale' },
+  star:      { reading_ss: 'star.reading_ss', math_ss: 'star.math_ss' }
+};
+
+
+/* ----------------------------------------------------------
+   COMPLIANCE REQUIREMENTS – Required IEP / PLAAFP components
+   (based on IDEA 34 CFR §300.320 and best-practice guidance)
+   ---------------------------------------------------------- */
+const COMPLIANCE_REQUIREMENTS = [
+  {
+    id: 'strengths',
+    label: 'Student Strengths',
+    description: 'The present levels must include a statement of the student\'s strengths.',
+    prompt: 'What are the student\'s academic, social, or behavioral strengths?',
+    category: 'required'
+  },
+  {
+    id: 'parent_input',
+    label: 'Parent / Guardian Input',
+    description: 'Parent concerns and input must be documented in the IEP.',
+    prompt: 'What concerns or input has the parent/guardian shared?',
+    category: 'required'
+  },
+  {
+    id: 'gen_ed_impact',
+    label: 'Impact on General Education',
+    description: 'The IEP must describe how the disability affects involvement and progress in the general education curriculum.',
+    prompt: 'How does the student\'s disability affect their involvement and progress in the general education curriculum?',
+    category: 'required'
+  },
+  {
+    id: 'baseline_data',
+    label: 'Baseline Data for Goals',
+    description: 'Current performance levels must provide measurable baseline data that directly connects to proposed IEP goals.',
+    prompt: 'What current measurable data will serve as the baseline for IEP goals?',
+    category: 'required'
+  },
+  {
+    id: 'evaluation_data',
+    label: 'Current Evaluation / Assessment Data',
+    description: 'Results from recent evaluations, assessments, and progress monitoring should be cited.',
+    prompt: 'What recent evaluation or assessment results are available?',
+    category: 'required'
+  },
+  {
+    id: 'classroom_performance',
+    label: 'Classroom-Based Performance',
+    description: 'Information about how the student performs in daily classroom activities, including teacher observations.',
+    prompt: 'How does the student perform in daily classroom activities?',
+    category: 'best_practice'
+  },
+  {
+    id: 'student_input',
+    label: 'Student Input (Age-Appropriate)',
+    description: 'When appropriate, the student\'s own perspective and self-assessment should be included.',
+    prompt: 'What has the student shared about their own learning, goals, or preferences?',
+    category: 'best_practice'
+  },
+  {
+    id: 'transition_needs',
+    label: 'Transition Needs (Age 14/16+)',
+    description: 'For students at transition age, present levels must address post-secondary goals and transition assessment results.',
+    prompt: 'What are the student\'s post-secondary goals and transition assessment results?',
+    category: 'conditional'
+  },
+  {
+    id: 'assistive_tech',
+    label: 'Assistive Technology Considered',
+    description: 'The IEP team must document whether assistive technology devices or services were considered.',
+    prompt: 'Has assistive technology been considered? What devices or services are in use or were evaluated?',
+    category: 'required'
+  },
+  {
+    id: 'ell_linguistic',
+    label: 'Linguistic / ELL Factors',
+    description: 'If the student is an English learner, language proficiency and its impact must be addressed.',
+    prompt: 'What is the student\'s language background and how does it affect performance?',
+    category: 'conditional'
+  }
+];
+
+
+/* ----------------------------------------------------------
+   ACCOMMODATIONS & SDI – Suggested accommodations and
+   Specially Designed Instruction mapped to skill areas
+   ---------------------------------------------------------- */
+const ACCOMMODATIONS_SDI = {
+  reading_fluency: {
+    label: 'Reading Fluency',
+    sdi: [
+      'Specially Designed Instruction in reading fluency using evidence-based methods (e.g., repeated reading, phrase-cued text, partner reading)',
+      'Explicit instruction in decoding and word-attack strategies to improve automaticity',
+      'Guided oral reading practice with corrective feedback at the student\'s instructional level'
+    ],
+    accommodations: [
+      'Extended time (1.5x) on reading-based assignments and assessments',
+      'Audio versions of grade-level text provided alongside print materials',
+      'Reduced reading load on assignments while maintaining grade-level rigor of content',
+      'Use of a reading guide or line tracker to support tracking during reading',
+      'Access to text-to-speech software for grade-level content'
+    ]
+  },
+  reading_comprehension: {
+    label: 'Reading Comprehension',
+    sdi: [
+      'Specially Designed Instruction in reading comprehension strategies (e.g., graphic organizers, summarization, questioning, visualization)',
+      'Explicit instruction in identifying main idea, text structure, and making inferences',
+      'Pre-teaching of vocabulary and background knowledge before grade-level reading'
+    ],
+    accommodations: [
+      'Graphic organizers provided for reading response activities',
+      'Simplified or chunked directions on reading-based tasks',
+      'Access to highlighted or annotated text to support comprehension',
+      'Preferential seating to minimize distractions during reading tasks',
+      'Check-ins after reading passages to verify understanding before proceeding'
+    ]
+  },
+  written_expression: {
+    label: 'Written Expression',
+    sdi: [
+      'Specially Designed Instruction in written expression (e.g., sentence construction, paragraph organization, editing/revision)',
+      'Explicit instruction in the writing process: planning, drafting, revising, and publishing',
+      'Use of structured writing templates and graphic organizers for written tasks'
+    ],
+    accommodations: [
+      'Access to word processing / keyboarding for written assignments',
+      'Use of speech-to-text software for longer writing tasks',
+      'Extended time on written assignments and essay-based assessments',
+      'Reduced written output requirements while maintaining content expectations',
+      'Provide sentence starters or writing frames to scaffold responses'
+    ]
+  },
+  math_computation: {
+    label: 'Math Computation',
+    sdi: [
+      'Specially Designed Instruction in math computation (e.g., number sense, fact fluency, multi-digit operations)',
+      'Use of Concrete-Representational-Abstract (CRA) instructional sequence for math concepts',
+      'Systematic instruction in math fact fluency with daily practice opportunities'
+    ],
+    accommodations: [
+      'Access to a calculator for complex calculations (when computation is not the assessed skill)',
+      'Use of multiplication/addition charts or reference sheets',
+      'Extended time on math assessments',
+      'Graph paper or lined paper turned sideways to support column alignment',
+      'Reduced number of practice problems while maintaining skill variety'
+    ]
+  },
+  math_concepts: {
+    label: 'Math Concepts & Problem Solving',
+    sdi: [
+      'Specially Designed Instruction in math reasoning and problem-solving strategies',
+      'Explicit instruction in word problem analysis (identifying key information, choosing operations)',
+      'Use of manipulatives and visual models to build conceptual understanding'
+    ],
+    accommodations: [
+      'Read-aloud of word problems and math directions',
+      'Visual models and step-by-step exemplars posted for reference',
+      'Extended time on math assessments involving multi-step problems',
+      'Chunked or scaffolded multi-step problems'
+    ]
+  },
+  communication: {
+    label: 'Communication / Language',
+    sdi: [
+      'Specially Designed Instruction in receptive and/or expressive language skills',
+      'Speech-language therapy addressing articulation, fluency, or language goals',
+      'Explicit instruction in vocabulary development and oral language skills'
+    ],
+    accommodations: [
+      'Visual supports (e.g., visual schedule, picture cues) paired with verbal instructions',
+      'Simplified or restated verbal directions',
+      'Extra wait time (5–10 seconds) for oral responses',
+      'Access to AAC device or communication board as appropriate',
+      'Preferential seating near the instructor for auditory access'
+    ]
+  },
+  social_emotional: {
+    label: 'Social / Emotional / Behavioral',
+    sdi: [
+      'Specially Designed Instruction in social skills (e.g., structured social skills curriculum, social thinking)',
+      'Specially Designed Instruction in self-regulation and coping strategies',
+      'Implementation of a Behavior Intervention Plan (BIP) based on Functional Behavior Assessment data'
+    ],
+    accommodations: [
+      'Access to a calm-down area or sensory break space',
+      'Check-in/check-out system with a trusted adult',
+      'Structured breaks during the school day (e.g., every 30 minutes)',
+      'Visual behavior expectations posted and reviewed daily',
+      'Advance notice of schedule changes or transitions'
+    ]
+  },
+  motor: {
+    label: 'Motor Skills (Fine/Gross)',
+    sdi: [
+      'Specially Designed Instruction in fine motor skills (e.g., handwriting, cutting, manipulation of small objects)',
+      'Occupational therapy to address fine motor and/or visual-motor integration needs',
+      'Physical therapy to address gross motor, balance, and/or coordination needs'
+    ],
+    accommodations: [
+      'Use of adapted writing tools (e.g., pencil grip, slant board)',
+      'Access to keyboarding as an alternative to handwriting for longer assignments',
+      'Adapted scissors and other classroom tools as needed',
+      'Extra time for activities requiring fine or gross motor skills',
+      'Modified PE activities to support safe participation'
+    ]
+  },
+  adaptive: {
+    label: 'Adaptive / Daily Living Skills',
+    sdi: [
+      'Specially Designed Instruction in daily living skills (e.g., personal hygiene, meal preparation, money skills)',
+      'Community-based instruction to practice functional skills in real-world settings',
+      'Task analysis and systematic instruction for multi-step self-care routines'
+    ],
+    accommodations: [
+      'Visual checklists for daily routines and self-care tasks',
+      'Visual or picture-based schedules for transitions between activities',
+      'Peer buddy system for navigating school environment',
+      'Prompting hierarchy (visual → verbal → physical) for independence building'
+    ]
+  },
+  attention_executive: {
+    label: 'Attention / Executive Functioning',
+    sdi: [
+      'Specially Designed Instruction in executive functioning skills (e.g., organization, planning, task initiation)',
+      'Explicit instruction in self-monitoring and self-regulation strategies',
+      'Structured organizational systems taught and practiced daily'
+    ],
+    accommodations: [
+      'Preferential seating away from distractions and near the teacher',
+      'Assignments broken into smaller steps with check-in points',
+      'Extended time on tests and assignments',
+      'Use of a planner or organizational app checked daily by staff',
+      'Frequent reminders and prompts to stay on task',
+      'Reduce number of items per page or section'
+    ]
+  }
+};
+
+/* Mapping: question IDs → accommodation categories for auto-suggestion */
+const QUESTION_ACCOMMODATION_MAP = {
+  ac_reading:      ['reading_fluency', 'reading_comprehension'],
+  ac_writing:      ['written_expression'],
+  ac_math:         ['math_computation', 'math_concepts'],
+  ac_directions:   ['attention_executive'],
+  ac_task:         ['attention_executive'],
+  ac_homework:     ['attention_executive'],
+  co_express:      ['communication'],
+  co_receptive:    ['communication'],
+  co_articulation: ['communication'],
+  co_social_comm:  ['communication', 'social_emotional'],
+  mo_fine:         ['motor'],
+  mo_gross:        ['motor'],
+  mo_writing_legib:['motor', 'written_expression'],
+  se_emotions:     ['social_emotional'],
+  se_peers:        ['social_emotional'],
+  se_transitions:  ['social_emotional'],
+  se_self_reg:     ['social_emotional'],
+  se_conflict:     ['social_emotional'],
+  ad_self_care:    ['adaptive'],
+  ad_safety:       ['adaptive'],
+  ad_routines:     ['adaptive']
+};
+
+
+/* ----------------------------------------------------------
+   COMMON CORE STATE STANDARDS – Mapped to skill areas
+   Abbreviated references for auto-linking in present levels
+   ---------------------------------------------------------- */
+const STANDARDS_MAP = {
+  reading_fluency: [
+    { standard: 'CCSS.ELA-LITERACY.RF.1.4', description: 'Read with sufficient accuracy and fluency to support comprehension (Grade 1)' },
+    { standard: 'CCSS.ELA-LITERACY.RF.2.4', description: 'Read with sufficient accuracy and fluency to support comprehension (Grade 2)' },
+    { standard: 'CCSS.ELA-LITERACY.RF.3.4', description: 'Read with sufficient accuracy and fluency to support comprehension (Grade 3)' },
+    { standard: 'CCSS.ELA-LITERACY.RF.4.4', description: 'Read with sufficient accuracy and fluency to support comprehension (Grade 4)' },
+    { standard: 'CCSS.ELA-LITERACY.RF.5.4', description: 'Read with sufficient accuracy and fluency to support comprehension (Grade 5)' }
+  ],
+  reading_comprehension: [
+    { standard: 'CCSS.ELA-LITERACY.RL.{grade}.1', description: 'Ask and answer questions about key details / cite textual evidence' },
+    { standard: 'CCSS.ELA-LITERACY.RL.{grade}.2', description: 'Determine central message, lesson, or moral / theme' },
+    { standard: 'CCSS.ELA-LITERACY.RI.{grade}.1', description: 'Ask and answer questions about key details in informational text' },
+    { standard: 'CCSS.ELA-LITERACY.RI.{grade}.2', description: 'Identify the main topic / main idea of informational text' }
+  ],
+  written_expression: [
+    { standard: 'CCSS.ELA-LITERACY.W.{grade}.1', description: 'Write opinion/argumentative pieces' },
+    { standard: 'CCSS.ELA-LITERACY.W.{grade}.2', description: 'Write informative/explanatory texts' },
+    { standard: 'CCSS.ELA-LITERACY.W.{grade}.3', description: 'Write narratives' },
+    { standard: 'CCSS.ELA-LITERACY.L.{grade}.1', description: 'Demonstrate command of the conventions of standard English grammar' },
+    { standard: 'CCSS.ELA-LITERACY.L.{grade}.2', description: 'Demonstrate command of the conventions of standard English capitalization, punctuation, and spelling' }
+  ],
+  math_computation: [
+    { standard: 'CCSS.MATH.CONTENT.{grade}.OA', description: 'Operations and Algebraic Thinking' },
+    { standard: 'CCSS.MATH.CONTENT.{grade}.NBT', description: 'Number and Operations in Base Ten' },
+    { standard: 'CCSS.MATH.CONTENT.{grade}.NF', description: 'Number and Operations — Fractions (Grades 3–5)' }
+  ],
+  math_concepts: [
+    { standard: 'CCSS.MATH.CONTENT.{grade}.OA', description: 'Operations and Algebraic Thinking' },
+    { standard: 'CCSS.MATH.CONTENT.{grade}.MD', description: 'Measurement and Data' },
+    { standard: 'CCSS.MATH.CONTENT.{grade}.G', description: 'Geometry' }
+  ],
+  communication: [
+    { standard: 'CCSS.ELA-LITERACY.SL.{grade}.1', description: 'Participate in collaborative conversations / discussions' },
+    { standard: 'CCSS.ELA-LITERACY.SL.{grade}.4', description: 'Describe / report on a topic with relevant details, speaking clearly' },
+    { standard: 'CCSS.ELA-LITERACY.SL.{grade}.6', description: 'Speak in complete sentences / adapt speech to a variety of contexts' }
+  ]
+};
+
+/* Mapping: question IDs → standards categories */
+const QUESTION_STANDARDS_MAP = {
+  ac_reading:  ['reading_fluency', 'reading_comprehension'],
+  ac_writing:  ['written_expression'],
+  ac_math:     ['math_computation', 'math_concepts'],
+  co_express:  ['communication'],
+  co_receptive:['communication'],
+  co_social_comm: ['communication']
+};
+
+
+/* ----------------------------------------------------------
+   PARENT-FRIENDLY LANGUAGE – Templates that transform
+   technical IEP language into plain, accessible language
+   ---------------------------------------------------------- */
+const PARENT_FRIENDLY_TEMPLATES = {
+  reading_level: {
+    technical: '{name} reads instructionally at {value}.',
+    plain: '{name} is currently reading at a {value} level. This means that with some help from the teacher, {he} can read and understand books written for that grade.'
+  },
+  reading_fluency: {
+    technical: 'oral reading fluency',
+    plain: 'Reading fluency means how quickly, accurately, and smoothly your child reads out loud. We measure this in words per minute.'
+  },
+  wcpm: {
+    technical: 'words correct per minute (WCPM)',
+    plain: 'This is the number of words your child can read correctly in one minute. It helps us see how smoothly {he} reads.'
+  },
+  benchmark: {
+    technical: 'At/Above Benchmark',
+    plain: 'This means your child is performing at or above the level we expect for students in {his} grade at this time of year.'
+  },
+  below_benchmark: {
+    technical: 'Below Benchmark / Well Below Benchmark',
+    plain: 'This means your child is not yet performing at the level we expect for students in {his} grade. We have a plan to provide extra support.'
+  },
+  rit_score: {
+    technical: 'RIT score',
+    plain: 'A RIT score is a number that shows how much your child knows in reading or math. We use it to track growth over time. A higher number means more learning has happened.'
+  },
+  area_of_need: {
+    technical: 'area of need',
+    plain: 'This is a skill area where your child needs extra help and will receive specific instruction to improve.'
+  },
+  sdi: {
+    technical: 'Specially Designed Instruction (SDI)',
+    plain: 'This is teaching that is specifically planned and adjusted to meet your child\'s unique learning needs. It is different from the regular classroom instruction.'
+  },
+  iep_goal: {
+    technical: 'IEP goal',
+    plain: 'This is a specific, measurable target for what your child will work toward learning this year with the help of their teachers.'
+  },
+  accommodation: {
+    technical: 'accommodation',
+    plain: 'An accommodation is a change in how your child is taught or tested. It gives your child a fair chance to show what they know without changing what they are learning.'
+  },
+  cbm: {
+    technical: 'Curriculum-Based Measurement (CBM)',
+    plain: 'These are quick tests that teachers give regularly to see how your child is progressing in important school skills like reading and math.'
+  },
+  progress_monitoring: {
+    technical: 'progress monitoring',
+    plain: 'This means we check your child\'s skills regularly (usually every 1–2 weeks) to make sure the extra help is working and adjust if needed.'
+  }
+};
+
+
 const SECTIONS = {
 
   /* ----------------------------------------------------------
