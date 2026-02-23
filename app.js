@@ -9,8 +9,7 @@ const state = {
   answers: {},        // { questionId: 'yes' | 'no' | 'na' }
   needs: {},          // { sectionKey: boolean }
   cbmEntries: [],     // [{ assessmentId, values: { fieldId: value } }]
-  pmDataPoints: [],   // [{ skill, date, score }]
-  compliance: {}      // { requirementId: boolean }
+  pmDataPoints: []    // [{ skill, date, score }]
 };
 
 /* ---- Pronoun helpers ---- */
@@ -434,57 +433,6 @@ function getPMSentences() {
     out.push(interpolate(`Based on progress monitoring data collected over ${trend.totalWeeks} ${weeksLabel}, {name} demonstrated ${direction} trend in ${skill}, with ${rateDesc}. {His} score moved from ${trend.startScore} to ${trend.endScore} (${totalGain >= 0 ? '+' : ''}${totalGain}).`));
   });
   return out;
-}
-
-/* ============================================================
-   FEATURE: Compliance Checklist
-   ============================================================ */
-function buildComplianceChecklist() {
-  const listEl = document.getElementById('compliance-list');
-  if (!listEl) return;
-
-  COMPLIANCE_REQUIREMENTS.forEach(req => {
-    state.compliance[req.id] = state.compliance[req.id] || false;
-
-    const categoryBadge = req.category === 'required' ? '<span class="compliance-badge required">Required</span>'
-      : req.category === 'conditional' ? '<span class="compliance-badge conditional">Conditional</span>'
-      : '<span class="compliance-badge best-practice">Best Practice</span>';
-
-    const item = document.createElement('label');
-    item.className = `compliance-item ${req.category}`;
-    item.id = `compliance-${req.id}`;
-    item.innerHTML = `
-      <input type="checkbox" class="compliance-checkbox" data-req="${req.id}" />
-      <span class="compliance-check-mark"></span>
-      <span class="compliance-label-text">
-        <strong>${req.label}</strong> ${categoryBadge}
-        <span class="compliance-hint">${req.description}</span>
-      </span>
-    `;
-    listEl.appendChild(item);
-  });
-
-  listEl.addEventListener('change', (e) => {
-    const cb = e.target;
-    if (!cb.classList.contains('compliance-checkbox')) return;
-    const reqId = cb.dataset.req;
-    state.compliance[reqId] = cb.checked;
-    const item = document.getElementById(`compliance-${reqId}`);
-    if (item) item.classList.toggle('completed', cb.checked);
-    updateComplianceScore();
-  });
-  updateComplianceScore();
-}
-
-function updateComplianceScore() {
-  const scoreEl = document.getElementById('compliance-score');
-  if (!scoreEl) return;
-  const required = COMPLIANCE_REQUIREMENTS.filter(r => r.category === 'required');
-  const completed = required.filter(r => state.compliance[r.id]);
-  const total = required.length;
-  const count = completed.length;
-  scoreEl.textContent = `${count} / ${total} required`;
-  scoreEl.className = `compliance-score ${count === total ? 'all-complete' : count > 0 ? 'partial' : ''}`;
 }
 
 /* ============================================================
@@ -1167,7 +1115,6 @@ function handleExtraTextChange(e) {
 function init() {
   buildQuestions();
   buildCBMPicker();
-  buildComplianceChecklist();
   updateSummary();
 
   // Tab clicks
