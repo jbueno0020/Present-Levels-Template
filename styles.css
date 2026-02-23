@@ -1,20 +1,20 @@
 /* =========================================================
-   Present Levels Generator – Warm Educator Theme
+   Present Levels Generator – Sky Blue Theme
    ========================================================= */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Warm primary palette */
-  --primary:      #b45309;
-  --primary-dk:   #92400e;
-  --primary-lt:   #fffbeb;
-  --primary-med:  #fef3c7;
+  /* Sky-blue primary palette */
+  --primary:      #0284c7;
+  --primary-dk:   #0369a1;
+  --primary-lt:   #e0f2fe;
+  --primary-med:  #bae6fd;
 
-  /* Accent – sage green */
-  --accent:       #4d7c0f;
-  --accent-lt:    #f7fee7;
-  --accent-border:#d9f99d;
+  /* Accent – teal/cyan */
+  --accent:       #0891b2;
+  --accent-lt:    #ecfeff;
+  --accent-border:#a5f3fc;
 
   /* Status colors */
   --need:         #be123c;
@@ -26,26 +26,26 @@
   --warn-bg:      #fffbeb;
   --warn-border:  #fde68a;
 
-  /* Neutrals – warm grays */
-  --gray-50:      #fafaf9;
-  --gray-100:     #f5f5f4;
-  --gray-200:     #e7e5e4;
-  --gray-300:     #d6d3d1;
-  --gray-400:     #a8a29e;
-  --gray-500:     #78716c;
-  --gray-600:     #57534e;
-  --gray-700:     #44403c;
-  --gray-800:     #292524;
+  /* Neutrals */
+  --gray-50:      #f8fafc;
+  --gray-100:     #f1f5f9;
+  --gray-200:     #e2e8f0;
+  --gray-300:     #cbd5e1;
+  --gray-400:     #94a3b8;
+  --gray-500:     #64748b;
+  --gray-600:     #475569;
+  --gray-700:     #334155;
+  --gray-800:     #1e293b;
 
   --radius:       14px;
   --radius-sm:    10px;
-  --shadow:       0 1px 3px rgba(120,100,80,.08), 0 6px 20px rgba(120,100,80,.07);
-  --shadow-sm:    0 1px 2px rgba(120,100,80,.06);
+  --shadow:       0 1px 3px rgba(0,0,0,.07), 0 6px 20px rgba(0,0,0,.06);
+  --shadow-sm:    0 1px 2px rgba(0,0,0,.06);
 }
 
 body {
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: #faf8f5;
+  background: #f0f9ff;
   color: var(--gray-800);
   line-height: 1.65;
   font-size: 15px;
@@ -53,7 +53,7 @@ body {
 
 /* ---- Header ---- */
 header {
-  background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%);
+  background: linear-gradient(135deg, #075985 0%, #0284c7 50%, #0ea5e9 100%);
   color: #fff;
   padding: 2.75rem 1.5rem 2.5rem;
   text-align: center;
@@ -165,7 +165,7 @@ header .subtitle {
   outline: none;
   border-color: var(--primary);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(180,83,9,.1);
+  box-shadow: 0 0 0 3px rgba(2,132,199,.12);
 }
 
 /* ---- Tabs ---- */
@@ -308,7 +308,7 @@ header .subtitle {
   outline: none;
   border-color: var(--primary);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(180,83,9,.1);
+  box-shadow: 0 0 0 3px rgba(2,132,199,.12);
 }
 
 /* ---- Reading Level Data Block ---- */
@@ -763,14 +763,14 @@ header .subtitle {
 
 /* Paper-style document */
 .document-preview {
-  background: #fffdf7;
+  background: #fff;
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-sm);
   padding: 2.5rem 3rem;
   min-height: 200px;
   font-size: .95rem;
   line-height: 1.85;
-  box-shadow: inset 0 2px 8px rgba(120,100,80,.04);
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
   color: var(--gray-800);
 }
 .doc-section { margin-bottom: 2rem; }

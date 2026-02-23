@@ -665,9 +665,9 @@ function buildQuestions() {
       card.innerHTML = `
         <div class="question-text">${q.text}</div>
         <div class="yes-no-row">
-          <button class="yn-btn yes" data-qid="${q.id}" data-val="yes">✓ Yes</button>
-          <button class="yn-btn no"  data-qid="${q.id}" data-val="no">✗ No</button>
-          <button class="yn-btn na"  data-qid="${q.id}" data-val="na">— N/A</button>
+          <button class="yn-btn yes" data-qid="${q.id}" data-val="yes">Yes</button>
+          <button class="yn-btn no"  data-qid="${q.id}" data-val="no">No</button>
+          <button class="yn-btn na"  data-qid="${q.id}" data-val="na">N/A</button>
         </div>
         <div class="question-sentence" id="qsentence-${q.id}"></div>
       `;
@@ -854,7 +854,7 @@ function handleNeedToggle(e) {
       if (!banner) {
         banner = document.createElement('div');
         banner.className = 'need-banner';
-        banner.innerHTML = '⚑ This section is marked as an <strong>Area of Need</strong>.';
+        banner.innerHTML = 'This section is marked as an <strong>Area of Need</strong>.';
         const sectionHeader = panel.querySelector('.section-header');
         sectionHeader.insertAdjacentElement('afterend', banner);
       }
@@ -893,7 +893,10 @@ function updateSummary() {
     const hasAnyAnswer = s.questions.some(q => state.answers[q.id]);
     const hasNoAnswers = s.questions.some(q => state.answers[q.id] === 'no');
     const isNeed       = state.needs[key] || false;
-    const reviewed     = hasAnyAnswer || isNeed;
+    const notesEl      = document.getElementById(`${key}-data`);
+    const hasNotes     = notesEl && notesEl.value.trim().length > 0;
+    const hasCBMData   = key === 'academic' && state.cbmEntries.length > 0;
+    const reviewed     = hasAnyAnswer || isNeed || hasNotes || hasCBMData;
     const flagged      = hasNoAnswers || isNeed;
 
     let chipClass, chipLabel;
@@ -1026,7 +1029,7 @@ function generateDocument() {
 
     html += `
       <div class="doc-section">
-        <h3 class="${flagged ? 'need-section' : ''}">${section.label}${flagged ? ' ★ Area of Need' : ''}</h3>
+        <h3 class="${flagged ? 'need-section' : ''}">${section.label}${flagged ? ' (Area of Need)' : ''}</h3>
         ${iepDateFmt ? `<p>Based on data gathered as of ${iepDateFmt}, the following reflects ${interpolate("{name}'s")} present levels of performance.</p>` : ''}
         ${extraText ? `<p>${interpolate(extraText)}</p>` : ''}
         ${readingLines.map(s => `<p>${s}</p>`).join('')}
@@ -1108,7 +1111,10 @@ function handleExtraTextChange(e) {
   if (!ta.tagName || ta.tagName !== 'TEXTAREA') return;
   const id = ta.id; // e.g. "academic-data"
   const sectionKey = id.replace('-data', '');
-  if (SECTIONS[sectionKey]) updateSectionOutput(sectionKey);
+  if (SECTIONS[sectionKey]) {
+    updateSectionOutput(sectionKey);
+    updateSummary();
+  }
 }
 
 /* ---- Init ---- */
@@ -1159,9 +1165,13 @@ function init() {
   const pmAddBtn = document.getElementById('pm-add-btn');
   if (pmAddBtn) pmAddBtn.addEventListener('click', addProgressPoint);
 
-  // Ensure pronouns changes are captured via both input and change events
+  // Ensure pronouns and date inputs are captured via change events (for select/date pickers)
   const pronounsEl = document.getElementById('pronouns');
   if (pronounsEl) pronounsEl.addEventListener('change', handleStudentInfoChange);
+  ['dob', 'iepDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', handleStudentInfoChange);
+  });
 
   // Document actions
   document.getElementById('generate-btn').addEventListener('click', generateDocument);
