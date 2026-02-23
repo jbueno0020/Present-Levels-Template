@@ -59,6 +59,16 @@
       </div>
     </section>
 
+    <!-- Compliance Tracker -->
+    <section class="card" id="compliance-card">
+      <div class="compliance-header">
+        <h2>IEP Compliance Checklist</h2>
+        <span class="compliance-score" id="compliance-score">0 / 0</span>
+      </div>
+      <p class="compliance-subtitle">Required and recommended PLAAFP components (IDEA 34 CFR &sect;300.320)</p>
+      <div id="compliance-list"></div>
+    </section>
+
     <!-- Navigation Tabs -->
     <nav class="tabs" id="section-tabs">
       <button class="tab active" data-section="academic">Academic</button>
@@ -180,6 +190,71 @@
             <div id="cbm-added-list"></div>
           </div>
 
+          <!-- Prior Year Comparison -->
+          <div class="level-data" id="prior-year-section">
+            <p class="level-data-label">Prior IEP / Year-Over-Year Comparison</p>
+            <p class="level-data-hint">Enter data from the student's previous IEP to auto-generate comparison language.</p>
+            <div class="grid-2">
+              <div class="field">
+                <label>Previous ORF (WCPM)</label>
+                <input type="number" id="prior-orf" placeholder="e.g. 32" />
+              </div>
+              <div class="field">
+                <label>Current ORF (WCPM)</label>
+                <input type="number" id="current-orf" placeholder="e.g. 45" />
+              </div>
+              <div class="field">
+                <label>Previous Math Score</label>
+                <input type="number" id="prior-math" placeholder="e.g. 185" />
+              </div>
+              <div class="field">
+                <label>Current Math Score</label>
+                <input type="number" id="current-math" placeholder="e.g. 198" />
+              </div>
+              <div class="field">
+                <label>Previous Reading Score</label>
+                <input type="number" id="prior-reading" placeholder="e.g. 172" />
+              </div>
+              <div class="field">
+                <label>Current Reading Score</label>
+                <input type="number" id="current-reading" placeholder="e.g. 188" />
+              </div>
+            </div>
+            <div id="prior-year-output" class="prior-year-output"></div>
+          </div>
+
+          <!-- Progress Monitoring -->
+          <div class="level-data" id="progress-monitoring-section">
+            <p class="level-data-label">Progress Monitoring Data</p>
+            <p class="level-data-hint">Add data points to generate trend language. Enter at least 3 data points for trend analysis.</p>
+            <div class="pm-input-row">
+              <div class="field">
+                <label>Skill Measured</label>
+                <select id="pm-skill">
+                  <option value="Oral Reading Fluency (WCPM)">Oral Reading Fluency (WCPM)</option>
+                  <option value="Math Computation (digits correct)">Math Computation (digits correct)</option>
+                  <option value="Maze Comprehension (correct)">Maze Comprehension (correct)</option>
+                  <option value="Written Expression (words written)">Written Expression (words written)</option>
+                  <option value="Nonsense Word Fluency (CLS)">Nonsense Word Fluency (CLS)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Date</label>
+                <input type="date" id="pm-date" />
+              </div>
+              <div class="field">
+                <label>Score</label>
+                <input type="number" id="pm-score" placeholder="e.g. 42" />
+              </div>
+              <div class="field pm-btn-field">
+                <label>&nbsp;</label>
+                <button class="btn-primary pm-add-btn" id="pm-add-btn">Add Point</button>
+              </div>
+            </div>
+            <div id="pm-data-table"></div>
+            <div id="pm-trend-output" class="pm-trend-output"></div>
+          </div>
+
           <div class="questions-grid" id="academic-questions"></div>
 
           <div class="generated-text-box">
@@ -190,6 +265,18 @@
           <div class="goals-box hidden" id="academic-goals-box">
             <h3>Suggested IEP Goals</h3>
             <ul id="academic-goals"></ul>
+          </div>
+
+          <!-- Accommodations / SDI (dynamic, per section) -->
+          <div class="accomm-box hidden" id="academic-accomm-box">
+            <h3>Recommended Accommodations &amp; SDI</h3>
+            <div id="academic-accomm"></div>
+          </div>
+
+          <!-- Standards Alignment (dynamic) -->
+          <div class="standards-box hidden" id="academic-standards-box">
+            <h3>Aligned Standards</h3>
+            <ul id="academic-standards"></ul>
           </div>
         </div>
       </section>
@@ -224,6 +311,14 @@
             <h3>Suggested IEP Goals</h3>
             <ul id="communication-goals"></ul>
           </div>
+          <div class="accomm-box hidden" id="communication-accomm-box">
+            <h3>Recommended Accommodations &amp; SDI</h3>
+            <div id="communication-accomm"></div>
+          </div>
+          <div class="standards-box hidden" id="communication-standards-box">
+            <h3>Aligned Standards</h3>
+            <ul id="communication-standards"></ul>
+          </div>
         </div>
       </section>
 
@@ -257,6 +352,10 @@
             <h3>Suggested IEP Goals</h3>
             <ul id="motor-goals"></ul>
           </div>
+          <div class="accomm-box hidden" id="motor-accomm-box">
+            <h3>Recommended Accommodations &amp; SDI</h3>
+            <div id="motor-accomm"></div>
+          </div>
         </div>
       </section>
 
@@ -289,6 +388,10 @@
           <div class="goals-box hidden" id="socialemotional-goals-box">
             <h3>Suggested IEP Goals</h3>
             <ul id="socialemotional-goals"></ul>
+          </div>
+          <div class="accomm-box hidden" id="socialemotional-accomm-box">
+            <h3>Recommended Accommodations &amp; SDI</h3>
+            <div id="socialemotional-accomm"></div>
           </div>
         </div>
       </section>
@@ -356,6 +459,10 @@
             <h3>Suggested IEP Goals</h3>
             <ul id="adaptive-goals"></ul>
           </div>
+          <div class="accomm-box hidden" id="adaptive-accomm-box">
+            <h3>Recommended Accommodations &amp; SDI</h3>
+            <div id="adaptive-accomm"></div>
+          </div>
         </div>
       </section>
 
@@ -408,12 +515,27 @@
         <h2>Full Present Levels Document</h2>
         <div class="preview-actions">
           <button id="generate-btn" class="btn-primary">Generate Document</button>
+          <button id="parent-friendly-btn" class="btn-secondary">Parent-Friendly Version</button>
           <button id="print-btn" class="btn-secondary">Print / Save as PDF</button>
           <button id="copy-btn" class="btn-secondary">Copy to Clipboard</button>
         </div>
       </div>
       <div id="document-preview" class="document-preview">
         <p class="placeholder-text">Click "Generate Document" to preview the full present levels document.</p>
+      </div>
+    </section>
+
+    <!-- Parent-Friendly Summary (hidden by default, shown by button) -->
+    <section class="card hidden" id="parent-friendly-card">
+      <div class="preview-header">
+        <h2>Parent-Friendly Summary</h2>
+        <div class="preview-actions">
+          <button id="parent-print-btn" class="btn-secondary">Print / Save as PDF</button>
+          <button id="parent-copy-btn" class="btn-secondary">Copy to Clipboard</button>
+        </div>
+      </div>
+      <div id="parent-friendly-preview" class="document-preview parent-friendly-doc">
+        <p class="placeholder-text">Click "Parent-Friendly Version" to generate a plain-language summary for parents.</p>
       </div>
     </section>
 

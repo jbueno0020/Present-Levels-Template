@@ -6,9 +6,11 @@
 const state = {
   pronouns: 'he',
   studentName: '',
-  answers: {},   // { questionId: 'yes' | 'no' | 'na' }
-  needs: {},     // { sectionKey: boolean }
-  cbmEntries: [] // [{ assessmentId, values: { fieldId: value } }]
+  answers: {},        // { questionId: 'yes' | 'no' | 'na' }
+  needs: {},          // { sectionKey: boolean }
+  cbmEntries: [],     // [{ assessmentId, values: { fieldId: value } }]
+  pmDataPoints: [],   // [{ skill, date, score }]
+  compliance: {}      // { requirementId: { completed: bool, text: string } }
 };
 
 /* ---- Pronoun helpers ---- */
@@ -28,6 +30,22 @@ function interpolate(template) {
     .replace(/\{his\}/g,   p.his)
     .replace(/\{He\}/g,    p.He)
     .replace(/\{His\}/g,   p.His);
+}
+
+/* ---- Grade number parser ---- */
+function getStudentGradeNum() {
+  const raw = (document.getElementById('grade')?.value || '').trim().toLowerCase();
+  if (raw === 'k' || raw === 'kindergarten') return 0;
+  const m = raw.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+/* ---- Current testing season based on month ---- */
+function getCurrentSeason() {
+  const month = new Date().getMonth(); // 0-indexed
+  if (month >= 7 && month <= 10) return 'fall';    // Aug–Nov
+  if (month >= 11 || month <= 1) return 'winter';  // Dec–Feb
+  return 'spring';                                   // Mar–Jul
 }
 
 /* ---- IEP date formatter ---- */
@@ -50,6 +68,12 @@ function getAcademicDataSentences() {
   if (indepWPM?.value)    out.push(interpolate(`{name}'s oral reading fluency at the independent level is ${indepWPM.value}.`));
   // CBM assessment sentences
   getCBMSentences().forEach(s => out.push(s));
+  // Benchmark gap sentences
+  getBenchmarkGapSentences().forEach(s => out.push(s));
+  // Prior year comparison
+  getPriorYearSentences().forEach(s => out.push(s));
+  // Progress monitoring trend
+  getPMSentences().forEach(s => out.push(s));
   return out;
 }
 
@@ -211,6 +235,487 @@ function renderCBMAddedList() {
   });
 }
 
+/* ============================================================
+   FEATURE: Benchmark Gap Calculator
+   ============================================================ */
+function lookupBenchmark(assessmentId, fieldId, grade, season) {
+  const map = CBM_BENCHMARK_MAP[assessmentId];
+  if (!map || !map[fieldId]) return null;
+  const path = map[fieldId].split('.');
+  const norms = BENCHMARK_NORMS[path[0]];
+  if (!norms) return null;
+  const subtestNorms = norms[path[1]];
+  if (!subtestNorms || !subtestNorms[grade]) return null;
+  return subtestNorms[grade][season] || null;
+}
+
+function getBenchmarkGapSentences() {
+  const grade = getStudentGradeNum();
+  const season = getCurrentSeason();
+  if (grade === null) return [];
+  const out = [];
+  state.cbmEntries.forEach(entry => {
+    const assessment = CBM_ASSESSMENTS.find(a => a.id === entry.assessmentId);
+    if (!assessment) return;
+    assessment.fields.forEach(field => {
+      if (field.type !== 'number') return;
+      const val = parseFloat(entry.values[field.id]);
+      if (isNaN(val)) return;
+      const benchmark = lookupBenchmark(entry.assessmentId, field.id, grade, season);
+      if (benchmark === null) return;
+      const diff = val - benchmark;
+      const absDiff = Math.abs(diff);
+      const seasonLabel = season.charAt(0).toUpperCase() + season.slice(1);
+      const gradeLabel = grade === 0 ? 'Kindergarten' : `grade ${grade}`;
+      if (diff >= 0) {
+        out.push(interpolate(`{name}'s score of ${val} on ${field.label} meets or exceeds the ${seasonLabel} ${gradeLabel} benchmark of ${benchmark} (${absDiff} points above benchmark).`));
+      } else {
+        out.push(interpolate(`{name}'s score of ${val} on ${field.label} is ${absDiff} points below the ${seasonLabel} ${gradeLabel} benchmark of ${benchmark}.`));
+      }
+    });
+  });
+  return out;
+}
+
+/* ============================================================
+   FEATURE: Prior Year Comparison
+   ============================================================ */
+function getPriorYearSentences() {
+  const out = [];
+  const pairs = [
+    { priorId: 'prior-orf',     currentId: 'current-orf',     label: 'oral reading fluency',           unit: 'WCPM' },
+    { priorId: 'prior-math',    currentId: 'current-math',    label: 'math assessment score',          unit: 'points' },
+    { priorId: 'prior-reading', currentId: 'current-reading', label: 'reading assessment score',       unit: 'points' }
+  ];
+  pairs.forEach(p => {
+    const priorEl = document.getElementById(p.priorId);
+    const currEl  = document.getElementById(p.currentId);
+    if (!priorEl || !currEl) return;
+    const prior = parseFloat(priorEl.value);
+    const curr  = parseFloat(currEl.value);
+    if (isNaN(prior) || isNaN(curr)) return;
+    const diff = curr - prior;
+    const absDiff = Math.abs(diff);
+    if (diff > 0) {
+      out.push(interpolate(`Compared to {his} previous IEP, {name} has improved {his} ${p.label} from ${prior} to ${curr} ${p.unit}, representing a gain of ${absDiff} ${p.unit}.`));
+    } else if (diff < 0) {
+      out.push(interpolate(`Compared to {his} previous IEP, {name}'s ${p.label} has decreased from ${prior} to ${curr} ${p.unit}, a decline of ${absDiff} ${p.unit}.`));
+    } else {
+      out.push(interpolate(`{name}'s ${p.label} has remained at ${curr} ${p.unit} since {his} previous IEP.`));
+    }
+  });
+  return out;
+}
+
+function renderPriorYearOutput() {
+  const outputEl = document.getElementById('prior-year-output');
+  if (!outputEl) return;
+  const sentences = getPriorYearSentences();
+  if (sentences.length === 0) {
+    outputEl.innerHTML = '';
+    return;
+  }
+  outputEl.innerHTML = sentences.map(s => `<p class="prior-year-sentence">${s}</p>`).join('');
+}
+
+/* ============================================================
+   FEATURE: Progress Monitoring Trend Calculator
+   ============================================================ */
+function addProgressPoint() {
+  const skill = document.getElementById('pm-skill')?.value;
+  const date  = document.getElementById('pm-date')?.value;
+  const score = parseFloat(document.getElementById('pm-score')?.value);
+  if (!skill || !date || isNaN(score)) return;
+
+  state.pmDataPoints.push({ skill, date, score });
+  state.pmDataPoints.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Reset inputs
+  document.getElementById('pm-date').value = '';
+  document.getElementById('pm-score').value = '';
+
+  renderPMTable();
+  renderPMTrend();
+  updateSectionOutput('academic');
+}
+
+function renderPMTable() {
+  const container = document.getElementById('pm-data-table');
+  if (!container) return;
+  if (state.pmDataPoints.length === 0) { container.innerHTML = ''; return; }
+
+  let html = '<table class="pm-table"><thead><tr><th>Date</th><th>Skill</th><th>Score</th><th></th></tr></thead><tbody>';
+  state.pmDataPoints.forEach((pt, idx) => {
+    const fmtDate = new Date(pt.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    html += `<tr><td>${fmtDate}</td><td>${pt.skill}</td><td>${pt.score}</td><td><button class="cbm-remove-btn pm-remove" data-idx="${idx}">x</button></td></tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+
+  container.querySelectorAll('.pm-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.pmDataPoints.splice(parseInt(btn.dataset.idx), 1);
+      renderPMTable();
+      renderPMTrend();
+      updateSectionOutput('academic');
+    });
+  });
+}
+
+function calculateTrend(points) {
+  if (points.length < 2) return null;
+  // Linear regression: x = days since first point, y = score
+  const t0 = new Date(points[0].date + 'T00:00:00').getTime();
+  const data = points.map(p => ({
+    x: (new Date(p.date + 'T00:00:00').getTime() - t0) / (7 * 24 * 60 * 60 * 1000), // weeks
+    y: p.score
+  }));
+  const n = data.length;
+  const sumX  = data.reduce((s, d) => s + d.x, 0);
+  const sumY  = data.reduce((s, d) => s + d.y, 0);
+  const sumXY = data.reduce((s, d) => s + d.x * d.y, 0);
+  const sumX2 = data.reduce((s, d) => s + d.x * d.x, 0);
+  const denom = n * sumX2 - sumX * sumX;
+  if (denom === 0) return { slope: 0, totalWeeks: 0, startScore: points[0].score, endScore: points[points.length - 1].score };
+  const slope = (n * sumXY - sumX * sumY) / denom;
+  const totalWeeks = data[data.length - 1].x;
+  return { slope: Math.round(slope * 100) / 100, totalWeeks: Math.round(totalWeeks * 10) / 10, startScore: points[0].score, endScore: points[points.length - 1].score };
+}
+
+function renderPMTrend() {
+  const container = document.getElementById('pm-trend-output');
+  if (!container) return;
+  if (state.pmDataPoints.length < 3) {
+    container.innerHTML = state.pmDataPoints.length > 0
+      ? '<p class="pm-hint">Add at least 3 data points for trend analysis.</p>'
+      : '';
+    return;
+  }
+
+  // Group by skill
+  const bySkill = {};
+  state.pmDataPoints.forEach(p => {
+    if (!bySkill[p.skill]) bySkill[p.skill] = [];
+    bySkill[p.skill].push(p);
+  });
+
+  let html = '';
+  Object.entries(bySkill).forEach(([skill, points]) => {
+    if (points.length < 3) return;
+    const trend = calculateTrend(points);
+    if (!trend) return;
+
+    const direction = trend.slope > 0.1 ? 'an upward' : trend.slope < -0.1 ? 'a downward' : 'a flat';
+    const rateDesc = Math.abs(trend.slope) < 0.1 ? 'minimal change' : `approximately ${Math.abs(trend.slope)} points per week`;
+    const totalGain = Math.round((trend.endScore - trend.startScore) * 10) / 10;
+    const weeksLabel = trend.totalWeeks === 1 ? 'week' : 'weeks';
+
+    html += `<p class="pm-trend-sentence">${interpolate(`Over a ${trend.totalWeeks}-${weeksLabel} period, {name} demonstrated ${direction} trend in ${skill}, gaining ${rateDesc}. {His} score moved from ${trend.startScore} to ${trend.endScore} (${totalGain >= 0 ? '+' : ''}${totalGain} total).`)}</p>`;
+  });
+  container.innerHTML = html;
+}
+
+function getPMSentences() {
+  if (state.pmDataPoints.length < 3) return [];
+  const out = [];
+  const bySkill = {};
+  state.pmDataPoints.forEach(p => {
+    if (!bySkill[p.skill]) bySkill[p.skill] = [];
+    bySkill[p.skill].push(p);
+  });
+  Object.entries(bySkill).forEach(([skill, points]) => {
+    if (points.length < 3) return;
+    const trend = calculateTrend(points);
+    if (!trend) return;
+    const direction = trend.slope > 0.1 ? 'an upward' : trend.slope < -0.1 ? 'a downward' : 'a flat';
+    const rateDesc = Math.abs(trend.slope) < 0.1 ? 'minimal change' : `approximately ${Math.abs(trend.slope)} points per week`;
+    const totalGain = Math.round((trend.endScore - trend.startScore) * 10) / 10;
+    const weeksLabel = trend.totalWeeks === 1 ? 'week' : 'weeks';
+    out.push(interpolate(`Based on progress monitoring data collected over ${trend.totalWeeks} ${weeksLabel}, {name} demonstrated ${direction} trend in ${skill}, with ${rateDesc}. {His} score moved from ${trend.startScore} to ${trend.endScore} (${totalGain >= 0 ? '+' : ''}${totalGain}).`));
+  });
+  return out;
+}
+
+/* ============================================================
+   FEATURE: Compliance Checklist
+   ============================================================ */
+function buildComplianceChecklist() {
+  const listEl = document.getElementById('compliance-list');
+  if (!listEl) return;
+
+  COMPLIANCE_REQUIREMENTS.forEach(req => {
+    state.compliance[req.id] = state.compliance[req.id] || { completed: false, text: '' };
+
+    const item = document.createElement('div');
+    item.className = `compliance-item ${req.category}`;
+    item.id = `compliance-${req.id}`;
+
+    const categoryBadge = req.category === 'required' ? '<span class="compliance-badge required">Required</span>'
+      : req.category === 'conditional' ? '<span class="compliance-badge conditional">Conditional</span>'
+      : '<span class="compliance-badge best-practice">Best Practice</span>';
+
+    item.innerHTML = `
+      <div class="compliance-item-header">
+        <label class="compliance-check-label">
+          <input type="checkbox" class="compliance-checkbox" data-req="${req.id}" />
+          <span class="compliance-check-mark"></span>
+          <strong>${req.label}</strong>
+          ${categoryBadge}
+        </label>
+      </div>
+      <p class="compliance-description">${req.description}</p>
+      <textarea class="compliance-textarea" data-req="${req.id}" rows="2" placeholder="${req.prompt}"></textarea>
+    `;
+    listEl.appendChild(item);
+  });
+
+  // Event delegation for compliance checkboxes and textareas
+  listEl.addEventListener('change', (e) => {
+    const cb = e.target;
+    if (cb.classList.contains('compliance-checkbox')) {
+      const reqId = cb.dataset.req;
+      state.compliance[reqId].completed = cb.checked;
+      const item = document.getElementById(`compliance-${reqId}`);
+      if (item) item.classList.toggle('completed', cb.checked);
+      updateComplianceScore();
+    }
+  });
+  listEl.addEventListener('input', (e) => {
+    const ta = e.target;
+    if (ta.classList.contains('compliance-textarea')) {
+      state.compliance[ta.dataset.req].text = ta.value;
+    }
+  });
+  updateComplianceScore();
+}
+
+function updateComplianceScore() {
+  const scoreEl = document.getElementById('compliance-score');
+  if (!scoreEl) return;
+  const required = COMPLIANCE_REQUIREMENTS.filter(r => r.category === 'required');
+  const completed = required.filter(r => state.compliance[r.id]?.completed);
+  const total = required.length;
+  const count = completed.length;
+  scoreEl.textContent = `${count} / ${total} required`;
+  scoreEl.className = `compliance-score ${count === total ? 'all-complete' : count > 0 ? 'partial' : ''}`;
+}
+
+/* ============================================================
+   FEATURE: Accommodation & SDI Recommender
+   ============================================================ */
+function updateAccommodations(sectionKey) {
+  const accommBox = document.getElementById(`${sectionKey}-accomm-box`);
+  const accommEl  = document.getElementById(`${sectionKey}-accomm`);
+  if (!accommBox || !accommEl) return;
+
+  const section = SECTIONS[sectionKey];
+  const hasNoAnswers = section.questions.some(q => state.answers[q.id] === 'no');
+  const isNeed = state.needs[sectionKey] || false;
+
+  if (!hasNoAnswers && !isNeed) {
+    accommBox.classList.add('hidden');
+    return;
+  }
+
+  // Collect accommodation categories from questions answered 'no'
+  const categories = new Set();
+  section.questions.forEach(q => {
+    if (state.answers[q.id] === 'no' && QUESTION_ACCOMMODATION_MAP[q.id]) {
+      QUESTION_ACCOMMODATION_MAP[q.id].forEach(cat => categories.add(cat));
+    }
+  });
+
+  if (categories.size === 0 && isNeed) {
+    // Default categories based on section
+    const defaults = {
+      academic: ['reading_fluency', 'math_computation'],
+      communication: ['communication'],
+      motor: ['motor'],
+      socialemotional: ['social_emotional'],
+      adaptive: ['adaptive'],
+      vocational: ['adaptive'],
+      health: []
+    };
+    (defaults[sectionKey] || []).forEach(c => categories.add(c));
+  }
+
+  if (categories.size === 0) {
+    accommBox.classList.add('hidden');
+    return;
+  }
+
+  accommBox.classList.remove('hidden');
+  let html = '';
+
+  categories.forEach(catKey => {
+    const cat = ACCOMMODATIONS_SDI[catKey];
+    if (!cat) return;
+    html += `<div class="accomm-category">`;
+    html += `<p class="accomm-category-label">${cat.label}</p>`;
+    html += `<div class="accomm-columns">`;
+    html += `<div class="accomm-col"><p class="accomm-col-title">Specially Designed Instruction (SDI)</p><ul>`;
+    cat.sdi.forEach(s => { html += `<li>${s}</li>`; });
+    html += `</ul></div>`;
+    html += `<div class="accomm-col"><p class="accomm-col-title">Accommodations</p><ul>`;
+    cat.accommodations.forEach(a => { html += `<li>${a}</li>`; });
+    html += `</ul></div>`;
+    html += `</div></div>`;
+  });
+
+  accommEl.innerHTML = html;
+}
+
+/* ============================================================
+   FEATURE: Standards Alignment
+   ============================================================ */
+function updateStandards(sectionKey) {
+  const standardsBox = document.getElementById(`${sectionKey}-standards-box`);
+  const standardsEl  = document.getElementById(`${sectionKey}-standards`);
+  if (!standardsBox || !standardsEl) return;
+
+  const section = SECTIONS[sectionKey];
+  const hasNoAnswers = section.questions.some(q => state.answers[q.id] === 'no');
+  const isNeed = state.needs[sectionKey] || false;
+
+  if (!hasNoAnswers && !isNeed) {
+    standardsBox.classList.add('hidden');
+    return;
+  }
+
+  const grade = getStudentGradeNum();
+  const gradeStr = grade !== null ? String(grade) : '3';
+
+  const categories = new Set();
+  section.questions.forEach(q => {
+    if (state.answers[q.id] === 'no' && QUESTION_STANDARDS_MAP[q.id]) {
+      QUESTION_STANDARDS_MAP[q.id].forEach(cat => categories.add(cat));
+    }
+  });
+
+  if (categories.size === 0) {
+    standardsBox.classList.add('hidden');
+    return;
+  }
+
+  standardsBox.classList.remove('hidden');
+  standardsEl.innerHTML = '';
+
+  categories.forEach(catKey => {
+    const standards = STANDARDS_MAP[catKey];
+    if (!standards) return;
+    standards.forEach(s => {
+      const std = s.standard.replace(/\{grade\}/g, gradeStr);
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${std}</strong>: ${s.description}`;
+      standardsEl.appendChild(li);
+    });
+  });
+}
+
+/* ============================================================
+   FEATURE: Parent-Friendly Summary Generator
+   ============================================================ */
+function generateParentFriendly() {
+  state.studentName = document.getElementById('studentName').value.trim();
+  state.pronouns    = document.getElementById('pronouns').value;
+
+  const card    = document.getElementById('parent-friendly-card');
+  const preview = document.getElementById('parent-friendly-preview');
+  card.classList.remove('hidden');
+
+  const sName  = state.studentName || 'Your child';
+  const grade  = document.getElementById('grade').value.trim();
+  const disab  = document.getElementById('disability').value.trim();
+
+  let html = `<div class="doc-section"><h3>A Guide to Your Child's Present Levels of Performance</h3>`;
+  html += `<p>Dear Parent/Guardian,</p>`;
+  html += `<p>This summary explains how <strong>${sName}</strong> is doing in school right now. We have written it in everyday language so you can easily understand your child's strengths, needs, and next steps.</p>`;
+
+  if (disab) {
+    html += `<p><strong>Your child's disability category is:</strong> ${disab}. This means the IEP team has identified specific areas where ${interpolate('{he}')} needs extra support to be successful in school.</p>`;
+  }
+  html += `</div>`;
+
+  // Glossary of key terms
+  html += `<div class="doc-section"><h3>Key Terms Explained</h3>`;
+  const glossaryKeys = ['area_of_need', 'sdi', 'accommodation', 'cbm', 'progress_monitoring', 'iep_goal'];
+  glossaryKeys.forEach(key => {
+    const t = PARENT_FRIENDLY_TEMPLATES[key];
+    if (!t) return;
+    html += `<p><strong>${t.technical}:</strong> ${interpolate(t.plain)}</p>`;
+  });
+  html += `</div>`;
+
+  // Section-by-section plain-language summaries
+  Object.entries(SECTIONS).forEach(([key, section]) => {
+    const hasNoAnswers = section.questions.some(q => state.answers[q.id] === 'no');
+    const isNeed       = state.needs[key] || false;
+    const flagged      = hasNoAnswers || isNeed;
+    const hasAnyAnswer = section.questions.some(q => state.answers[q.id]);
+    if (!hasAnyAnswer && !isNeed) return;
+
+    html += `<div class="doc-section"><h3 class="${flagged ? 'need-section' : ''}">${section.label}</h3>`;
+
+    // Strengths
+    const strengths = section.questions.filter(q => state.answers[q.id] === 'yes');
+    if (strengths.length > 0) {
+      html += `<p><strong>What ${sName} is doing well:</strong></p><ul>`;
+      strengths.forEach(q => {
+        html += `<li>${interpolate(q.yesSentence)}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    // Needs
+    const needs = section.questions.filter(q => state.answers[q.id] === 'no');
+    if (needs.length > 0) {
+      html += `<p><strong>Where ${sName} needs more help:</strong></p><ul>`;
+      needs.forEach(q => {
+        html += `<li>${interpolate(q.noSentence)}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    if (flagged) {
+      html += `<p><em>This area has been identified as a focus for ${sName}'s IEP. The school team will provide extra support and track progress in this area.</em></p>`;
+    } else {
+      html += `<p><em>${sName} is doing well in this area and does not need extra help right now.</em></p>`;
+    }
+
+    html += `</div>`;
+  });
+
+  // CBM data in plain language
+  if (state.cbmEntries.length > 0) {
+    html += `<div class="doc-section"><h3>Assessment Results (What the Scores Mean)</h3>`;
+    html += `<p>${interpolate(PARENT_FRIENDLY_TEMPLATES.cbm.plain)}</p>`;
+    const gapSentences = getBenchmarkGapSentences();
+    if (gapSentences.length > 0) {
+      html += `<p>Here is how ${sName}'s scores compare to what we expect for ${interpolate('{his}')} grade level:</p><ul>`;
+      gapSentences.forEach(s => { html += `<li>${s}</li>`; });
+      html += `</ul>`;
+    }
+    html += `</div>`;
+  }
+
+  // Progress monitoring in plain language
+  const pmSentences = getPMSentences();
+  if (pmSentences.length > 0) {
+    html += `<div class="doc-section"><h3>How Your Child Is Progressing</h3>`;
+    html += `<p>${interpolate(PARENT_FRIENDLY_TEMPLATES.progress_monitoring.plain)}</p>`;
+    pmSentences.forEach(s => { html += `<p>${s}</p>`; });
+    html += `</div>`;
+  }
+
+  // Closing
+  html += `<div class="doc-section"><h3>Questions?</h3>`;
+  html += `<p>If you have questions about your child's present levels, goals, or services, please reach out to ${interpolate('{his}')} case manager. You are a valued member of the IEP team, and your input matters.</p>`;
+  html += `</div>`;
+
+  preview.innerHTML = html;
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 /* ---- Build question cards for every section ---- */
 function buildQuestions() {
   Object.entries(SECTIONS).forEach(([sectionKey, sectionData]) => {
@@ -333,6 +838,8 @@ function updateSectionOutput(sectionKey) {
   if (!hasContent) {
     outputEl.innerHTML = '<span style="color:var(--gray-400);font-style:italic;">Answer the questions above to generate present level text.</span>';
     updateGoalSuggestions(sectionKey);
+    updateAccommodations(sectionKey);
+    updateStandards(sectionKey);
     updateTabIndicator(sectionKey);
     return;
   }
@@ -359,6 +866,12 @@ function updateSectionOutput(sectionKey) {
 
   // Show/hide goals
   updateGoalSuggestions(sectionKey);
+
+  // Accommodations & SDI
+  updateAccommodations(sectionKey);
+
+  // Standards alignment
+  updateStandards(sectionKey);
 
   // Update tab indicator
   updateTabIndicator(sectionKey);
@@ -528,6 +1041,54 @@ function generateDocument() {
       ? `Based on current assessment data, ${section.label} is currently identified as an area of need for ${interpolate('{name}')}.`
       : `Based on current assessment data, ${section.label} is not currently identified as an area of need for ${interpolate('{name}')}.`;
 
+    // Collect accommodation categories for this section
+    const accommCategories = new Set();
+    if (flagged) {
+      section.questions.forEach(q => {
+        if (state.answers[q.id] === 'no' && QUESTION_ACCOMMODATION_MAP[q.id]) {
+          QUESTION_ACCOMMODATION_MAP[q.id].forEach(cat => accommCategories.add(cat));
+        }
+      });
+    }
+
+    // Collect standards
+    const standardsCategories = new Set();
+    if (flagged) {
+      section.questions.forEach(q => {
+        if (state.answers[q.id] === 'no' && QUESTION_STANDARDS_MAP[q.id]) {
+          QUESTION_STANDARDS_MAP[q.id].forEach(cat => standardsCategories.add(cat));
+        }
+      });
+    }
+
+    const grade = getStudentGradeNum();
+    const gradeStr = grade !== null ? String(grade) : '3';
+
+    let accommHtml = '';
+    if (accommCategories.size > 0) {
+      accommHtml = '<p><strong>Recommended Accommodations & SDI:</strong></p><ul>';
+      accommCategories.forEach(catKey => {
+        const cat = ACCOMMODATIONS_SDI[catKey];
+        if (!cat) return;
+        cat.sdi.forEach(s => { accommHtml += `<li><em>SDI:</em> ${s}</li>`; });
+        cat.accommodations.slice(0, 3).forEach(a => { accommHtml += `<li><em>Accommodation:</em> ${a}</li>`; });
+      });
+      accommHtml += '</ul>';
+    }
+
+    let standardsHtml = '';
+    if (standardsCategories.size > 0) {
+      standardsHtml = '<p><strong>Aligned Standards:</strong></p><ul>';
+      standardsCategories.forEach(catKey => {
+        const standards = STANDARDS_MAP[catKey];
+        if (!standards) return;
+        standards.slice(0, 3).forEach(s => {
+          standardsHtml += `<li>${s.standard.replace(/\{grade\}/g, gradeStr)}: ${s.description}</li>`;
+        });
+      });
+      standardsHtml += '</ul>';
+    }
+
     html += `
       <div class="doc-section">
         <h3 class="${flagged ? 'need-section' : ''}">${section.label}${flagged ? ' ★ Area of Need' : ''}</h3>
@@ -536,9 +1097,23 @@ function generateDocument() {
         ${readingLines.map(s => `<p>${s}</p>`).join('')}
         ${sentences.map(s => `<p>${s}</p>`).join('')}
         <p><em>${needSentence}</em></p>
+        ${accommHtml}
+        ${standardsHtml}
       </div>
     `;
   });
+
+  // Compliance summary in document
+  const complianceRequired = COMPLIANCE_REQUIREMENTS.filter(r => r.category === 'required');
+  const complianceCompleted = complianceRequired.filter(r => state.compliance[r.id]?.completed);
+  const complianceTexts = COMPLIANCE_REQUIREMENTS.filter(r => state.compliance[r.id]?.text?.trim());
+  if (complianceTexts.length > 0) {
+    html += `<div class="doc-section"><h3>Additional Required Components</h3>`;
+    complianceTexts.forEach(r => {
+      html += `<p><strong>${r.label}:</strong> ${interpolate(state.compliance[r.id].text)}</p>`;
+    });
+    html += `</div>`;
+  }
 
   preview.innerHTML = html;
 
@@ -617,6 +1192,7 @@ function handleExtraTextChange(e) {
 function init() {
   buildQuestions();
   buildCBMPicker();
+  buildComplianceChecklist();
   updateSummary();
 
   // Tab clicks
@@ -648,14 +1224,44 @@ function init() {
   const cbmPicker = document.getElementById('cbm-picker');
   if (cbmPicker) cbmPicker.addEventListener('change', (e) => renderCBMFields(e.target.value));
 
+  // Prior year comparison inputs
+  ['prior-orf', 'current-orf', 'prior-math', 'current-math', 'prior-reading', 'current-reading'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      renderPriorYearOutput();
+      updateSectionOutput('academic');
+    });
+  });
+
+  // Progress monitoring
+  const pmAddBtn = document.getElementById('pm-add-btn');
+  if (pmAddBtn) pmAddBtn.addEventListener('click', addProgressPoint);
+
   // Ensure pronouns changes are captured via both input and change events
   const pronounsEl = document.getElementById('pronouns');
   if (pronounsEl) pronounsEl.addEventListener('change', handleStudentInfoChange);
 
   // Document actions
   document.getElementById('generate-btn').addEventListener('click', generateDocument);
+  document.getElementById('parent-friendly-btn').addEventListener('click', generateParentFriendly);
   document.getElementById('print-btn').addEventListener('click', printDocument);
   document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+
+  // Parent-friendly print/copy
+  const parentPrintBtn = document.getElementById('parent-print-btn');
+  if (parentPrintBtn) parentPrintBtn.addEventListener('click', () => {
+    generateParentFriendly();
+    setTimeout(() => window.print(), 200);
+  });
+  const parentCopyBtn = document.getElementById('parent-copy-btn');
+  if (parentCopyBtn) parentCopyBtn.addEventListener('click', () => {
+    generateParentFriendly();
+    const text = document.getElementById('parent-friendly-preview').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      parentCopyBtn.textContent = 'Copied!';
+      setTimeout(() => { parentCopyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+    }).catch(() => {});
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
